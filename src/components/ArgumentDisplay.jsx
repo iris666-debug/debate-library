@@ -10,6 +10,14 @@ export default function ArgumentDisplay({ index, side, value }) {
     (f) => value[`${f.key}_en`] || value[`${f.key}_zh`]
   )
 
+  const sidePrefix = `${side === 'prop' ? '正方' : '反方'} ${index + 1}`
+  const nameEn = value.name_en?.trim()
+  const nameZh = value.name_zh?.trim()
+  const namePart = nameEn && nameZh ? `${nameEn} / ${nameZh}` : nameEn || nameZh
+  const titleText = namePart
+    ? `${sidePrefix} · ${namePart}`
+    : `${side === 'prop' ? '正方' : '反方'}论点 ${index + 1}`
+
   return (
     <details
       open
@@ -17,7 +25,7 @@ export default function ArgumentDisplay({ index, side, value }) {
     >
       <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm hover:bg-stone-50 list-none [&::-webkit-details-marker]:hidden rounded-xl">
         <span className="font-medium">
-          {side === 'prop' ? '正方' : '反方'}论点 {index + 1}
+          {titleText}
           {!filled && (
             <span className="ml-2 text-xs text-stone-400 font-normal">(空)</span>
           )}

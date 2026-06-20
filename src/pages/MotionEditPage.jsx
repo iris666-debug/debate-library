@@ -234,6 +234,7 @@ export default function MotionEditPage() {
 
 function padArgs(arr) {
   const empty = {
+    name_en: '', name_zh: '',
     claim_en: '', claim_zh: '',
     mechanism_en: '', mechanism_zh: '',
     comparative_en: '', comparative_zh: '',

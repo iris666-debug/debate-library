@@ -20,6 +20,13 @@ export default function ArgumentEditor({ index, side, value, onChange }) {
         {side === 'prop' ? '正方' : '反方'}论点 {index + 1}
       </div>
       <div className="space-y-3">
+        <BilingualField
+          label="论点名称 Argument Name"
+          en={value.name_en || ''}
+          zh={value.name_zh || ''}
+          onEnChange={(v) => update('name', 'en', v)}
+          onZhChange={(v) => update('name', 'zh', v)}
+        />
         {FIELDS.map((f) => (
           <BilingualField
             key={f.key}

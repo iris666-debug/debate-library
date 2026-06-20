@@ -15,6 +15,8 @@ export function motionsCol(uid) {
 
 export function makeEmptyArg() {
   return {
+    name_en: '',
+    name_zh: '',
     claim_en: '',
     claim_zh: '',
     mechanism_en: '',
