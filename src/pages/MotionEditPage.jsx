@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { useUserCollection } from '../hooks/useCollection'
@@ -26,6 +26,19 @@ export default function MotionEditPage() {
     orderDir: 'asc',
   })
 
+  const { items: allMotions } = useUserCollection('motions', {
+    orderBy: 'updatedAt',
+    orderDir: 'desc',
+  })
+
+  const allCoreClashes = useMemo(() => {
+    const set = new Set()
+    allMotions.forEach((m) => {
+      if (m.coreClash) set.add(m.coreClash)
+    })
+    return Array.from(set).sort()
+  }, [allMotions])
+
   const [motion, setMotion] = useState(makeEmptyMotion())
   const [loading, setLoading] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
@@ -50,6 +63,7 @@ export default function MotionEditPage() {
             oppArgs: padArgs(data.oppArgs),
             tags: data.tags || [],
             motionType: data.motionType || '',
+            coreClash: data.coreClash || '',
             linkedModuleIds: data.linkedModuleIds || [],
           })
         }
@@ -88,6 +102,7 @@ export default function MotionEditPage() {
         source: motion.source.trim(),
         tags: motion.tags,
         motionType: motion.motionType,
+        coreClash: motion.coreClash.trim(),
         propArgs: motion.propArgs,
         oppArgs: motion.oppArgs,
         linkedModuleIds: motion.linkedModuleIds,
@@ -167,6 +182,24 @@ export default function MotionEditPage() {
           />
           <p className="text-xs text-stone-500 mt-1">
             可以直接打字搜索预置主题（如 Privacy、Climate Change），也可以输入任意自定义标签。
+          </p>
+        </Field>
+        <Field label="Core Clash（核心矛盾）">
+          <input
+            type="text"
+            value={motion.coreClash}
+            onChange={(e) => setField('coreClash', e.target.value)}
+            list="core-clash-options"
+            placeholder="例如：Innovation vs Safety"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
+          />
+          <datalist id="core-clash-options">
+            {allCoreClashes.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
+          <p className="text-xs text-stone-500 mt-1">
+            Core Clash 描述的是题目的底层矛盾结构（如 Innovation vs Safety），与"标签"（主题分类）和"模块"（论证逻辑）不同。相同 Core Clash 的题目可以做思路迁移训练。
           </p>
         </Field>
       </Section>

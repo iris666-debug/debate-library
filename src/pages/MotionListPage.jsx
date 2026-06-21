@@ -16,6 +16,7 @@ export default function MotionListPage() {
   const [search, setSearch] = useState('')
   const [activeTags, setActiveTags] = useState([])
   const [activeMotionType, setActiveMotionType] = useState('')
+  const [activeCoreClashes, setActiveCoreClashes] = useState([])
 
   const moduleMap = useMemo(() => {
     const m = {}
@@ -31,18 +32,29 @@ export default function MotionListPage() {
     return Array.from(set).sort()
   }, [motions])
 
+  const allCoreClashes = useMemo(() => {
+    const set = new Set()
+    motions.forEach((m) => {
+      if (m.coreClash) set.add(m.coreClash)
+    })
+    return Array.from(set).sort()
+  }, [motions])
+
   const filtered = useMemo(() => {
     const kw = search.trim().toLowerCase()
     return motions.filter((m) => {
       if (kw && !(m.text || '').toLowerCase().includes(kw)) return false
       if (activeMotionType && m.motionType !== activeMotionType) return false
+      if (activeCoreClashes.length > 0) {
+        if (!m.coreClash || !activeCoreClashes.includes(m.coreClash)) return false
+      }
       if (activeTags.length > 0) {
         const tags = m.tags || []
         if (!activeTags.some((t) => tags.includes(t))) return false
       }
       return true
     })
-  }, [motions, search, activeTags, activeMotionType])
+  }, [motions, search, activeTags, activeMotionType, activeCoreClashes])
 
   const toggleTag = (t) => {
     setActiveTags((prev) =>
@@ -50,7 +62,13 @@ export default function MotionListPage() {
     )
   }
 
-  const hasFilters = search.trim() || activeTags.length > 0 || activeMotionType
+  const toggleCoreClash = (c) => {
+    setActiveCoreClashes((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    )
+  }
+
+  const hasFilters = search.trim() || activeTags.length > 0 || activeMotionType || activeCoreClashes.length > 0
   const isEmpty = !loading && motions.length === 0
   const isFirstTime = isEmpty && modules.length === 0
   const isFilteredEmpty = !loading && motions.length > 0 && filtered.length === 0
@@ -115,6 +133,29 @@ export default function MotionListPage() {
             </div>
           )}
 
+          {allCoreClashes.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {allCoreClashes.map((c) => {
+                const active = activeCoreClashes.includes(c)
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleCoreClash(c)}
+                    className={
+                      'rounded-md px-2.5 py-1 text-xs transition ' +
+                      (active
+                        ? 'bg-stone-900 text-white'
+                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200')
+                    }
+                  >
+                    ⚔️ {c}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center">
               {allTags.map((t) => {
@@ -142,6 +183,7 @@ export default function MotionListPage() {
                     setSearch('')
                     setActiveTags([])
                     setActiveMotionType('')
+                    setActiveCoreClashes([])
                   }}
                   className="text-xs text-stone-500 hover:text-stone-900 ml-1"
                 >
@@ -204,6 +246,7 @@ export default function MotionListPage() {
               setSearch('')
               setActiveTags([])
               setActiveMotionType('')
+              setActiveCoreClashes([])
             }}
             className="text-xs text-stone-600 hover:text-stone-900 mt-2 underline"
           >
@@ -227,8 +270,13 @@ export default function MotionListPage() {
                 {m.text || '(无 Motion 文本)'}
               </p>
               {m.source && <p className="text-xs text-stone-500">{m.source}</p>}
-              {((m.tags && m.tags.length > 0) || m.motionType || linkedModules.length > 0) && (
+              {((m.tags && m.tags.length > 0) || m.motionType || m.coreClash || linkedModules.length > 0) && (
                 <div className="flex flex-wrap gap-1.5 pt-1">
+                  {m.coreClash && (
+                    <span className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
+                      ⚔️ {m.coreClash}
+                    </span>
+                  )}
                   {m.motionType && (
                     <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
                       {m.motionType}

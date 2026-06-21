@@ -99,6 +99,11 @@ export default function MotionDetailPage() {
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           {motion.source && <span className="text-stone-500">{motion.source}</span>}
+          {motion.coreClash && (
+            <span className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
+              ⚔️ {motion.coreClash}
+            </span>
+          )}
           {motion.motionType && (
             <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
               {motion.motionType}

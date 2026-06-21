@@ -35,6 +35,7 @@ export function makeEmptyMotion() {
     source: '',
     tags: [],
     motionType: '',
+    coreClash: '',
     propArgs: [makeEmptyArg(), makeEmptyArg(), makeEmptyArg()],
     oppArgs: [makeEmptyArg(), makeEmptyArg(), makeEmptyArg()],
     linkedModuleIds: [],

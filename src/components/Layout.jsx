@@ -15,6 +15,7 @@ export default function Layout() {
             <NavItem to="/vocab">词汇</NavItem>
             <NavItem to="/drill">复述</NavItem>
             <NavItem to="/poi">POI</NavItem>
+            <NavItem to="/coach">AI教练</NavItem>
             <NavItem to="/data">数据</NavItem>
           </nav>
           <button
