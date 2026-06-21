@@ -34,6 +34,7 @@ export function makeEmptyMotion() {
     text: '',
     source: '',
     tags: [],
+    motionType: '',
     propArgs: [makeEmptyArg(), makeEmptyArg(), makeEmptyArg()],
     oppArgs: [makeEmptyArg(), makeEmptyArg(), makeEmptyArg()],
     linkedModuleIds: [],

@@ -9,6 +9,7 @@ import {
   deleteMotion,
   makeEmptyMotion,
 } from '../data/motions'
+import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import TagInput from '../components/TagInput'
 import ArgumentEditor from '../components/ArgumentEditor'
 import ModuleMultiSelect from '../components/ModuleMultiSelect'
@@ -48,6 +49,7 @@ export default function MotionEditPage() {
             propArgs: padArgs(data.propArgs),
             oppArgs: padArgs(data.oppArgs),
             tags: data.tags || [],
+            motionType: data.motionType || '',
             linkedModuleIds: data.linkedModuleIds || [],
           })
         }
@@ -85,6 +87,7 @@ export default function MotionEditPage() {
         text: motion.text.trim(),
         source: motion.source.trim(),
         tags: motion.tags,
+        motionType: motion.motionType,
         propArgs: motion.propArgs,
         oppArgs: motion.oppArgs,
         linkedModuleIds: motion.linkedModuleIds,
@@ -142,11 +145,29 @@ export default function MotionEditPage() {
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
           />
         </Field>
+        <Field label="Motion Type（辩题立场类型）">
+          <select
+            value={motion.motionType}
+            onChange={(e) => setField('motionType', e.target.value)}
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
+          >
+            <option value="">-- 不指定 --</option>
+            {MOTION_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </Field>
         <Field label="标签">
           <TagInput
             value={motion.tags}
             onChange={(v) => setField('tags', v)}
+            suggestions={SUGGESTED_TAGS}
           />
+          <p className="text-xs text-stone-500 mt-1">
+            可以直接打字搜索预置主题（如 Privacy、Climate Change），也可以输入任意自定义标签。
+          </p>
         </Field>
       </Section>
 

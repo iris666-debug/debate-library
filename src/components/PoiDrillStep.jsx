@@ -1,3 +1,5 @@
+import SpeakButton from './SpeakButton'
+
 export default function PoiDrillStep({
   current,
   currentIdx,
@@ -24,8 +26,13 @@ export default function PoiDrillStep({
       </div>
 
       <section className="bg-white border border-stone-200 rounded-2xl p-5 space-y-2">
-        <div className="text-xs uppercase tracking-wide text-stone-500 font-semibold">
-          问题
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wide text-stone-500 font-semibold">
+            问题
+          </div>
+          {current.poi.question_en && (
+            <SpeakButton text={current.poi.question_en} rate={0.85} label="听发音" />
+          )}
         </div>
         {current.poi.question_en && (
           <p className="text-stone-800 whitespace-pre-wrap leading-relaxed">

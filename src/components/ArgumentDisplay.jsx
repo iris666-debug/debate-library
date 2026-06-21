@@ -1,3 +1,5 @@
+import SpeakButton from './SpeakButton'
+
 const FIELDS = [
   { key: 'claim', label: 'Claim 论点' },
   { key: 'mechanism', label: 'Mechanism 机制' },
@@ -42,8 +44,11 @@ export default function ArgumentDisplay({ index, side, value }) {
             if (!en && !zh) return null
             return (
               <div key={f.key} className="space-y-1.5 pt-3">
-                <div className="text-xs uppercase tracking-wide text-stone-500 font-semibold">
-                  {f.label}
+                <div className="flex items-center justify-between">
+                  <div className="text-xs uppercase tracking-wide text-stone-500 font-semibold">
+                    {f.label}
+                  </div>
+                  {en && <SpeakButton text={en} rate={0.85} label="" />}
                 </div>
                 {en && (
                   <p className="text-sm text-stone-800 whitespace-pre-wrap leading-relaxed">

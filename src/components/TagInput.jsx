@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 
-export default function TagInput({ value = [], onChange, placeholder = '输入标签后回车添加' }) {
+export default function TagInput({ value = [], onChange, placeholder = '输入标签后回车添加', suggestions = [] }) {
   const [input, setInput] = useState('')
+  const listId = useId()
 
   const addTag = (raw) => {
     const t = raw.trim()
@@ -53,7 +54,17 @@ export default function TagInput({ value = [], onChange, placeholder = '输入�
         onBlur={() => addTag(input)}
         placeholder={value.length === 0 ? placeholder : ''}
         className="flex-1 min-w-[120px] outline-none text-sm py-1 bg-transparent"
+        list={suggestions.length > 0 ? listId : undefined}
       />
+      {suggestions.length > 0 && (
+        <datalist id={listId}>
+          {suggestions
+            .filter((s) => !value.includes(s))
+            .map((s) => (
+              <option key={s} value={s} />
+            ))}
+        </datalist>
+      )}
     </div>
   )
 }

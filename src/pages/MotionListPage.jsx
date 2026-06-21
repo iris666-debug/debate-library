@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useUserCollection } from '../hooks/useCollection'
+import { MOTION_TYPES } from '../data/debateTaxonomy'
 
 export default function MotionListPage() {
   const { items: motions, loading } = useUserCollection('motions', {
@@ -14,6 +15,7 @@ export default function MotionListPage() {
 
   const [search, setSearch] = useState('')
   const [activeTags, setActiveTags] = useState([])
+  const [activeMotionType, setActiveMotionType] = useState('')
 
   const moduleMap = useMemo(() => {
     const m = {}
@@ -33,13 +35,14 @@ export default function MotionListPage() {
     const kw = search.trim().toLowerCase()
     return motions.filter((m) => {
       if (kw && !(m.text || '').toLowerCase().includes(kw)) return false
+      if (activeMotionType && m.motionType !== activeMotionType) return false
       if (activeTags.length > 0) {
         const tags = m.tags || []
         if (!activeTags.some((t) => tags.includes(t))) return false
       }
       return true
     })
-  }, [motions, search, activeTags])
+  }, [motions, search, activeTags, activeMotionType])
 
   const toggleTag = (t) => {
     setActiveTags((prev) =>
@@ -47,7 +50,7 @@ export default function MotionListPage() {
     )
   }
 
-  const hasFilters = search.trim() || activeTags.length > 0
+  const hasFilters = search.trim() || activeTags.length > 0 || activeMotionType
   const isEmpty = !loading && motions.length === 0
   const isFirstTime = isEmpty && modules.length === 0
   const isFilteredEmpty = !loading && motions.length > 0 && filtered.length === 0
@@ -88,6 +91,30 @@ export default function MotionListPage() {
             </span>
           </div>
 
+          {MOTION_TYPES.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {MOTION_TYPES.map((t) => {
+                const active = activeMotionType === t.value
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    title={t.label}
+                    onClick={() => setActiveMotionType(active ? '' : t.value)}
+                    className={
+                      'rounded-md px-2.5 py-1 text-xs transition ' +
+                      (active
+                        ? 'bg-stone-700 text-white'
+                        : 'bg-stone-200 text-stone-700 hover:bg-stone-300')
+                    }
+                  >
+                    {t.value}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 items-center">
               {allTags.map((t) => {
@@ -114,6 +141,7 @@ export default function MotionListPage() {
                   onClick={() => {
                     setSearch('')
                     setActiveTags([])
+                    setActiveMotionType('')
                   }}
                   className="text-xs text-stone-500 hover:text-stone-900 ml-1"
                 >
@@ -175,6 +203,7 @@ export default function MotionListPage() {
             onClick={() => {
               setSearch('')
               setActiveTags([])
+              setActiveMotionType('')
             }}
             className="text-xs text-stone-600 hover:text-stone-900 mt-2 underline"
           >
@@ -198,8 +227,13 @@ export default function MotionListPage() {
                 {m.text || '(无 Motion 文本)'}
               </p>
               {m.source && <p className="text-xs text-stone-500">{m.source}</p>}
-              {((m.tags && m.tags.length > 0) || linkedModules.length > 0) && (
+              {((m.tags && m.tags.length > 0) || m.motionType || linkedModules.length > 0) && (
                 <div className="flex flex-wrap gap-1.5 pt-1">
+                  {m.motionType && (
+                    <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
+                      {m.motionType}
+                    </span>
+                  )}
                   {(m.tags || []).map((t) => (
                     <span
                       key={t}

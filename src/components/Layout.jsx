@@ -12,6 +12,7 @@ export default function Layout() {
           <nav className="flex items-center gap-1 text-sm">
             <NavItem to="/">题卡</NavItem>
             <NavItem to="/modules">模块</NavItem>
+            <NavItem to="/vocab">词汇</NavItem>
             <NavItem to="/drill">复述</NavItem>
             <NavItem to="/poi">POI</NavItem>
             <NavItem to="/data">数据</NavItem>

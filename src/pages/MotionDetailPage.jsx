@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { useUserCollection } from '../hooks/useCollection'
 import { getMotion } from '../data/motions'
 import ArgumentDisplay from '../components/ArgumentDisplay'
+import SpeakButton from '../components/SpeakButton'
 
 export default function MotionDetailPage() {
   const { id } = useParams()
@@ -90,11 +91,19 @@ export default function MotionDetailPage() {
       </div>
 
       <header className="space-y-3">
-        <h1 className="text-xl md:text-2xl font-semibold leading-snug whitespace-pre-wrap">
-          {motion.text}
-        </h1>
+        <div className="flex items-start gap-3">
+          <h1 className="flex-1 text-xl md:text-2xl font-semibold leading-snug whitespace-pre-wrap">
+            {motion.text}
+          </h1>
+          <SpeakButton text={motion.text} className="mt-1 shrink-0" />
+        </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           {motion.source && <span className="text-stone-500">{motion.source}</span>}
+          {motion.motionType && (
+            <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
+              {motion.motionType}
+            </span>
+          )}
           {motion.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {motion.tags.map((t) => (

@@ -7,6 +7,7 @@ import MotionDetailPage from './pages/MotionDetailPage'
 import MotionEditPage from './pages/MotionEditPage'
 import ModuleListPage from './pages/ModuleListPage'
 import ModuleDetailPage from './pages/ModuleDetailPage'
+import VocabListPage from './pages/VocabListPage'
 import DrillPickerPage from './pages/DrillPickerPage'
 import DrillSessionPage from './pages/DrillSessionPage'
 import PoiPickerPage from './pages/PoiPickerPage'
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/motions/:id/edit" element={<MotionEditPage />} />
         <Route path="/modules" element={<ModuleListPage />} />
         <Route path="/modules/:id" element={<ModuleDetailPage />} />
+        <Route path="/vocab" element={<VocabListPage />} />
         <Route path="/drill" element={<DrillPickerPage />} />
         <Route path="/drill/:id" element={<DrillSessionPage />} />
         <Route path="/poi" element={<PoiPickerPage />} />

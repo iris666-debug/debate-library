@@ -1,0 +1,30 @@
+export const MOTION_TYPES = [
+  { value: 'THBT', label: 'THBT — This House Believes That' },
+  { value: 'THO', label: 'THO — This House Opposes' },
+  { value: 'THP', label: 'THP — This House Prefers' },
+  { value: 'THR', label: 'THR — This House Regrets' },
+  { value: 'THS', label: 'THS — This House Supports' },
+  { value: 'THW', label: 'THW — This House Would' },
+]
+
+export const SUGGESTED_TAGS = [
+  'Africa', 'Art', 'Asia', 'Children', 'Cities', 'Criminal Justice', 'Culture',
+  'Development', 'Economics', 'Education/Academia', 'Environment', 'Europe',
+  'Feminism', 'International Relations', 'Latin America', 'Law', 'LGBTQ+',
+  'Media', 'Medical', 'Middle East', 'Military', 'Minority Communities',
+  'Philosophy', 'Politics', 'Religion', 'Romance/Sexuality', 'Science/Technology',
+  'Social Justice', 'Sports', 'Aging/Elderly Care', 'Animal Rights',
+  'Artificial Intelligence', 'Bioethics', 'Censorship', 'Charity', 'China/Taiwan',
+  'Civil Disobedience', 'Civil Liberties', 'Climate Change', 'Colonialism',
+  'Corporate Regulation', 'Cryptocurrency', 'Cybersecurity', 'Democracy',
+  'Disability Rights', 'Disinformation', 'Drugs', 'Energy', 'Family/Parenting',
+  'Foreign Policy', 'Free Speech', 'Funny', 'Genetic Engineering', 'Globalization',
+  'Gun Control', 'Healthcare', 'Historical Memory', 'Housing', 'Human Rights',
+  'Immigration', 'India/Pakistan', 'Indigenous Peoples', 'Intellectual Property',
+  'Israel/Palestine', 'Journalism', 'Labor', 'Medicine', 'Mental Health',
+  'Nationalism', 'Pacifism', 'Police', 'Populism', 'Poverty', 'Privacy',
+  'Private Property', 'Protest Movements', 'Refugees & Asylum', 'Reparations',
+  'Reproductive Rights', 'Sanctions', 'Social Media', 'Surveillance', 'Taxation',
+  'Terrorism', 'Tourism', 'Trade', 'Ukraine/Russia', 'Universal Basic Income',
+  'Whistleblowing',
+].sort()
