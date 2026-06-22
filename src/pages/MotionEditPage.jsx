@@ -10,6 +10,8 @@ import {
   makeEmptyMotion,
 } from '../data/motions'
 import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
+import { askGemini } from '../ai/gemini'
+import { buildGenerateArgumentsPrompt } from '../ai/prompts'
 import TagInput from '../components/TagInput'
 import ArgumentEditor from '../components/ArgumentEditor'
 import ModuleMultiSelect from '../components/ModuleMultiSelect'
@@ -47,6 +49,7 @@ export default function MotionEditPage() {
   const [motion, setMotion] = useState(makeEmptyMotion())
   const [loading, setLoading] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -136,6 +139,44 @@ export default function MotionEditPage() {
     navigate('/')
   }
 
+  const handleGenerateArguments = async () => {
+    if (!motion.text.trim()) {
+      setError('请先填写辩题文本')
+      return
+    }
+
+    setGenerating(true)
+    setError('')
+
+    try {
+      const prompt = buildGenerateArgumentsPrompt(motion.text)
+      const result = await askGemini(prompt)
+
+      // 尝试解析 JSON（去除可能的 Markdown 代码块标记）
+      let jsonStr = result.trim()
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/```\s*$/, '')
+      } else if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/^```\s*/, '').replace(/```\s*$/, '')
+      }
+
+      const data = JSON.parse(jsonStr)
+
+      // 填入编辑器
+      setMotion((prev) => ({
+        ...prev,
+        coreClashes: data.coreClash ? [data.coreClash] : prev.coreClashes,
+        propArgs: data.propArgs || prev.propArgs,
+        oppArgs: data.oppArgs || prev.oppArgs,
+      }))
+    } catch (err) {
+      console.error('AI 生成失败', err)
+      setError(err?.message || 'AI 生成失败，请重试')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   if (loading) {
     return <div className="text-sm text-stone-400">加载中…</div>
   }
@@ -161,6 +202,26 @@ export default function MotionEditPage() {
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none resize-y"
           />
         </Field>
+
+        {/* AI 生成按钮 */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleGenerateArguments}
+            disabled={!motion.text.trim() || generating}
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            title={!motion.text.trim() ? '请先填写辩题' : ''}
+          >
+            <span>✨</span>
+            {generating ? '生成中…' : 'AI 生成论点草稿'}
+          </button>
+          {generating && (
+            <span className="text-xs text-stone-500">
+              正在调用 Gemini 生成论点，大约需要 10-20 秒...
+            </span>
+          )}
+        </div>
+
         <Field label="赛事来源">
           <input
             type="text"

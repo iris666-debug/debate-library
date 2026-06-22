@@ -152,3 +152,41 @@ ${pdfText}
 4. 只能用材料里实际出现的信息，不能编造
 5. 用简体中文输出`
 }
+
+export function buildGenerateArgumentsPrompt(motionText) {
+  return `你是一位经验丰富的BP辩论教练。请为以下辩题生成完整的论点草稿。
+
+辩题: ${motionText}
+
+要求输出格式为严格的JSON（不要有任何Markdown代码块标记，直接返回JSON）：
+{
+  "coreClash": "建议的核心矛盾（如 Innovation vs Safety）",
+  "propArgs": [
+    {
+      "name_en": "英文论点名称",
+      "name_zh": "中文论点名称",
+      "claim_en": "英文Claim",
+      "claim_zh": "中文Claim",
+      "mechanism_points": [
+        {"text_en": "Step 1 in English", "text_zh": "第1步中文"},
+        {"text_en": "Step 2 in English", "text_zh": "第2步中文"},
+        {"text_en": "Step 3 in English", "text_zh": "第3步中文"}
+      ],
+      "comparative_en": "英文Comparative",
+      "comparative_zh": "中文Comparative",
+      "impact_en": "英文Impact",
+      "impact_zh": "中文Impact"
+    }
+  ],
+  "oppArgs": [
+    // 同样结构，3条反方论点
+  ]
+}
+
+要求:
+1. 正反方各生成3条完整论点
+2. 每条论点的Mechanism必须拆成3个逻辑清晰的推理步骤
+3. 所有字段都要有英文和中文版本
+4. Core Clash要准确反映这道题的底层矛盾结构
+5. 直接返回JSON，不要有其他文字说明`
+}
