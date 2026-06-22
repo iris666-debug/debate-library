@@ -32,11 +32,11 @@
 - **功能**:
   - 录入辩题 Motion + 赛事来源
   - **Motion Type** 下拉选择 (THBT/THO/THP/THR/THS/THW)
-  - **Core Clash** 输入框（核心矛盾结构，如 "Innovation vs Safety"）
+  - **Core Clash** 多选标签（支持一张题卡多个核心矛盾，如 "Innovation vs Safety"）
   - **标签系统**: 自由输入 + 预置 100+ 主题推荐（Privacy、Climate Change 等）
   - 正反双方各 3 个论点，每个论点包含:
     - **论点名称**: `name_en` / `name_zh` (英文/中文)
-    - Claim / Mechanism / Comparative / Impact（双语）
+    - Claim / **Mechanism（支持拆步骤）** / Comparative / Impact（双语）
     - 每个论点可添加多条 POI 质询（question + answer，双语）
   - 关联"万能模块"（跨题卡复用的论证框架）
 - **筛选**: Motion Type / Core Clash / 标签 / 搜索
@@ -104,6 +104,15 @@
   - 从 JSON 文件导入恢复数据
   - 清空所有数据
 
+### 9. Motion Type 打法笔记 (`/motion-type-notes`) 🆕
+- **位置**: `src/pages/MotionTypeGuidePage.jsx`
+- **功能**:
+  - 针对 6 种 Motion Type（THBT/THO/THP/THR/THS/THW）各自记录打法心得
+  - 每种类型 5 个区块：核心论证要求、正方重心、反方重心、常见误区、示例题
+  - 用户自己编辑内容，长期积累（不是 AI 预填）
+  - 自动初始化 6 条空文档，不需要手动创建
+- **数据**: `users/{uid}/motionTypeNotes` collection
+
 ---
 
 ## 数据结构
@@ -124,13 +133,16 @@ publicMotions/          # 公共题库（37k 条英文辩题，脚本导入）
   text: '',              // Motion 原文
   source: '',            // 赛事来源
   motionType: '',        // THBT/THO/THP/THR/THS/THW
-  coreClash: '',         // 核心矛盾（如 "Innovation vs Safety"）
+  coreClashes: [],       // 核心矛盾数组（旧数据可能是 coreClash 单字符串）
   tags: [],              // 标签数组
   propArgs: [            // 正方论点（3 个）
     {
       name_en: '', name_zh: '',
       claim_en: '', claim_zh: '',
-      mechanism_en: '', mechanism_zh: '',
+      mechanism_en: '', mechanism_zh: '',        // 旧格式：单一文本
+      mechanism_points: [                        // 新格式：拆步骤
+        { text_en: '', text_zh: '' }
+      ],
       comparative_en: '', comparative_zh: '',
       impact_en: '', impact_zh: '',
       pois: [{ question_en: '', question_zh: '', answer_en: '', answer_zh: '' }]
