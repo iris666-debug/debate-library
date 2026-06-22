@@ -38,46 +38,65 @@ ${argsText}
 }
 
 export function buildWeaknessPrompt(motion) {
+  const typeHint = motion.motionType ? `这是一道 ${motion.motionType} 类型的题目。` : ''
+
   const formatArgs = (args, side) => {
-    let text = `\n${side}:\n`
-    args.forEach((a, i) => {
-      text += `论点${i + 1}:\n`
-      if (a.claim_en || a.claim_zh)
-        text += `Claim: ${a.claim_en || a.claim_zh}\n`
+    return args.map((a, i) => {
+      let text = `论点${i + 1}:\n`
+      text += `- Claim: ${a.claim_en || a.claim_zh || '未填写'}\n`
 
       // Mechanism 支持拆步骤
       if (a.mechanism_points && a.mechanism_points.length > 0) {
-        text += `Mechanism:\n`
+        text += `- Mechanism:\n`
         a.mechanism_points.forEach((p, idx) => {
-          text += `  步骤${idx + 1}: ${p.text_en || p.text_zh}\n`
+          text += `  步骤${idx + 1}: ${p.text_en || p.text_zh || '未填写'}\n`
         })
-      } else if (a.mechanism_en || a.mechanism_zh) {
-        text += `Mechanism: ${a.mechanism_en || a.mechanism_zh}\n`
+      } else {
+        text += `- Mechanism: ${a.mechanism_en || a.mechanism_zh || '未填写'}\n`
       }
 
-      if (a.comparative_en || a.comparative_zh)
-        text += `Comparative: ${a.comparative_en || a.comparative_zh}\n`
-      if (a.impact_en || a.impact_zh)
-        text += `Impact: ${a.impact_en || a.impact_zh}\n`
-    })
-    return text
+      text += `- Comparative: ${a.comparative_en || a.comparative_zh || '未填写'}\n`
+      text += `- Impact: ${a.impact_en || a.impact_zh || '未填写'}\n`
+      return text
+    }).join('\n')
   }
 
-  const propText = formatArgs(motion.propArgs, '正方论点')
-  const oppText = formatArgs(motion.oppArgs, '反方论点')
+  const propText = formatArgs(motion.propArgs, '正方')
+  const oppText = formatArgs(motion.oppArgs, '反方')
 
-  return `你是一位BP辩论教练。请检查以下题卡的正反双方论点，指出逻辑漏洞。
+  const thrCheck = motion.motionType?.includes('THR') ? '4. THR特项检查：遗憾的对象有没有被具象化？' : ''
+  const thoCheck = motion.motionType?.includes('THO') ? '4. THO特项检查：反对的是性质还是程度？论点有没有混淆这两者？' : ''
 
-辩题: ${motion.text}
+  return `你是一个严格的 British Parliamentary 辩论评委。${typeHint}
+
+辩题：${motion.text}
+
+正方论点：
 ${propText}
+
+反方论点：
 ${oppText}
 
-要求:
-1. 按"正方论点"/"反方论点"分两部分
-2. 逐条指出每个论点在 claim/mechanism/comparative/impact 里最薄弱的一环
-3. 对于 Mechanism 拆成多步骤的论点，检查每一步推理是否成立、步骤之间是否有逻辑跳跃
-4. 最后总结整道题的结构性短板
-5. 用简体中文输出，直接指出问题，不需要客套`
+请按以下结构逐一检查，用简体中文回复：
+
+【正方论点漏洞】
+逐条检查每个论点：
+1. Mechanism是否有逻辑跳跃（原因和结果之间缺少步骤）？
+2. Impact是否只是在陈述结果而没有说清楚"为什么这个结果重要/比对方更重要"？
+3. 是否有反例会直接推翻这个论点？
+${thrCheck}
+${thoCheck}
+
+【反方论点漏洞】
+逐条检查每个论点：
+1. Mechanism是否有逻辑跳跃（原因和结果之间缺少步骤）？
+2. Impact是否只是在陈述结果而没有说清楚"为什么这个结果重要/比对方更重要"？
+3. 是否有反例会直接推翻这个论点？
+${thrCheck}
+${thoCheck}
+
+【整体结构性短板】
+正反双方交锋在哪里最薄弱？哪个核心分歧没有被充分论证？`
 }
 
 export function buildSimilarPrompt(motion, allMotions) {
@@ -189,4 +208,33 @@ export function buildGenerateArgumentsPrompt(motionText) {
 3. 所有字段都要有英文和中文版本
 4. Core Clash要准确反映这道题的底层矛盾结构
 5. 直接返回JSON，不要有其他文字说明`
+}
+
+export function buildGenerateSideArgumentsPrompt(motionText, motionType, side) {
+  const sideName = side === 'prop' ? '正方' : '反方'
+  const typeHint = motionType ? `辩题类型是 ${motionType}。` : ''
+
+  return `你是一个 British Parliamentary 辩论教练。${typeHint}这道题是：${motionText}
+
+请为【${sideName}】生成3个独立论点，每个论点包含：
+1. Claim（一句话主张）
+2. Mechanism（因果机制，1-2句）
+3. Comparative（比较基准，1句）
+4. Impact（影响，1句）
+
+用JSON格式返回，结构为：
+[
+  {
+    "claim_en": "英文Claim",
+    "claim_zh": "中文Claim",
+    "mechanism_en": "英文Mechanism",
+    "mechanism_zh": "中文Mechanism",
+    "comparative_en": "英文Comparative",
+    "comparative_zh": "中文Comparative",
+    "impact_en": "英文Impact",
+    "impact_zh": "中文Impact"
+  }
+]
+
+只返回JSON数组，不要任何其他文字。`
 }

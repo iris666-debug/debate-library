@@ -11,7 +11,7 @@ import {
 } from '../data/motions'
 import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import { askGemini } from '../ai/gemini'
-import { buildGenerateArgumentsPrompt } from '../ai/prompts'
+import { buildGenerateSideArgumentsPrompt } from '../ai/prompts'
 import TagInput from '../components/TagInput'
 import ArgumentEditor from '../components/ArgumentEditor'
 import ModuleMultiSelect from '../components/ModuleMultiSelect'
@@ -49,7 +49,7 @@ export default function MotionEditPage() {
   const [motion, setMotion] = useState(makeEmptyMotion())
   const [loading, setLoading] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
-  const [generating, setGenerating] = useState(false)
+  const [generatingSide, setGeneratingSide] = useState({ prop: false, opp: false })
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -139,20 +139,20 @@ export default function MotionEditPage() {
     navigate('/')
   }
 
-  const handleGenerateArguments = async () => {
+  const handleGenerateSideArguments = async (side) => {
     if (!motion.text.trim()) {
       setError('请先填写辩题文本')
       return
     }
 
-    setGenerating(true)
+    setGeneratingSide((prev) => ({ ...prev, [side]: true }))
     setError('')
 
     try {
-      const prompt = buildGenerateArgumentsPrompt(motion.text)
+      const prompt = buildGenerateSideArgumentsPrompt(motion.text, motion.motionType, side)
       const result = await askGemini(prompt)
 
-      // 尝试解析 JSON（去除可能的 Markdown 代码块标记）
+      // 解析 JSON
       let jsonStr = result.trim()
       if (jsonStr.startsWith('```json')) {
         jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/```\s*$/, '')
@@ -162,20 +162,47 @@ export default function MotionEditPage() {
 
       const data = JSON.parse(jsonStr)
 
-      // 填入编辑器
-      setMotion((prev) => ({
-        ...prev,
-        coreClashes: data.coreClash ? [data.coreClash] : prev.coreClashes,
-        propArgs: data.propArgs || prev.propArgs,
-        oppArgs: data.oppArgs || prev.oppArgs,
+      // 填入对应侧论点（保留 name_en/zh 和 pois 字段，补充空的 mechanism_points）
+      const enrichedArgs = data.map((arg) => ({
+        name_en: '',
+        name_zh: '',
+        ...arg,
+        mechanism_points: [],
+        pois: [],
       }))
+
+      if (side === 'prop') {
+        setMotion((prev) => ({ ...prev, propArgs: enrichedArgs }))
+      } else {
+        setMotion((prev) => ({ ...prev, oppArgs: enrichedArgs }))
+      }
     } catch (err) {
       console.error('AI 生成失败', err)
       setError(err?.message || 'AI 生成失败，请重试')
     } finally {
-      setGenerating(false)
+      setGeneratingSide((prev) => ({ ...prev, [side]: false }))
     }
   }
+
+  const getMotionTypeHint = () => {
+    if (!motion.motionType) return null
+
+    if (motion.motionType.includes('THR')) {
+      return '⚠️ THR题型提示：你的论点有没有把"遗憾的对象"具象化？遗憾的是一种现象、文化还是具体政策？论点方向会因此完全不同。'
+    }
+
+    if (motion.motionType.includes('THO')) {
+      return '⚠️ THO题型提示：你找到质的区别了吗？THO不是反对结果，而是反对达成结果的方式或价值取向，注意区分程度差异和性质差异。'
+    }
+
+    if (motion.motionType.includes('Compared to') || motion.motionType === 'THBT') {
+      return '💡 比较题型提示：Comparative栏位是核心，确保你的比较基准清晰，避免"everything else equal"成为空话。'
+    }
+
+    return null
+  }
+
+  const motionTypeHint = getMotionTypeHint()
 
   if (loading) {
     return <div className="text-sm text-stone-400">加载中…</div>
@@ -202,26 +229,6 @@ export default function MotionEditPage() {
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none resize-y"
           />
         </Field>
-
-        {/* AI 生成按钮 */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleGenerateArguments}
-            disabled={!motion.text.trim() || generating}
-            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            title={!motion.text.trim() ? '请先填写辩题' : ''}
-          >
-            <span>✨</span>
-            {generating ? '生成中…' : 'AI 生成论点草稿'}
-          </button>
-          {generating && (
-            <span className="text-xs text-stone-500">
-              正在调用 Gemini 生成论点，大约需要 10-20 秒...
-            </span>
-          )}
-        </div>
-
         <Field label="赛事来源">
           <input
             type="text"
@@ -274,7 +281,28 @@ export default function MotionEditPage() {
         </Field>
       </Section>
 
+      {/* 题型感知提示 */}
+      {motionTypeHint && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
+          {motionTypeHint}
+        </div>
+      )}
+
       <Section title="正方论点 (Proposition)">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            type="button"
+            onClick={() => handleGenerateSideArguments('prop')}
+            disabled={!motion.text.trim() || generatingSide.prop}
+            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!motion.text.trim() ? '请先填写辩题' : ''}
+          >
+            {generatingSide.prop ? '生成中…' : 'AI 生成草稿'}
+          </button>
+          {generatingSide.prop && (
+            <span className="text-xs text-stone-500">正在生成正方论点...</span>
+          )}
+        </div>
         {motion.propArgs.map((a, i) => (
           <ArgumentEditor
             key={i}
@@ -287,6 +315,20 @@ export default function MotionEditPage() {
       </Section>
 
       <Section title="反方论点 (Opposition)">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            type="button"
+            onClick={() => handleGenerateSideArguments('opp')}
+            disabled={!motion.text.trim() || generatingSide.opp}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!motion.text.trim() ? '请先填写辩题' : ''}
+          >
+            {generatingSide.opp ? '生成中…' : 'AI 生成草稿'}
+          </button>
+          {generatingSide.opp && (
+            <span className="text-xs text-stone-500">正在生成反方论点...</span>
+          )}
+        </div>
         {motion.oppArgs.map((a, i) => (
           <ArgumentEditor
             key={i}
