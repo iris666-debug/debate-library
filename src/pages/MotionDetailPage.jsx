@@ -99,11 +99,12 @@ export default function MotionDetailPage() {
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           {motion.source && <span className="text-stone-500">{motion.source}</span>}
-          {motion.coreClash && (
-            <span className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
-              ⚔️ {motion.coreClash}
+          {/* 兼容旧数据单字符串 + 新数据数组 */}
+          {(motion.coreClashes || (motion.coreClash ? [motion.coreClash] : [])).map((c) => (
+            <span key={c} className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
+              ⚔️ {c}
             </span>
-          )}
+          ))}
           {motion.motionType && (
             <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
               {motion.motionType}

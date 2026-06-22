@@ -35,7 +35,12 @@ export default function MotionListPage() {
   const allCoreClashes = useMemo(() => {
     const set = new Set()
     motions.forEach((m) => {
+      // 兼容旧数据单字符串
       if (m.coreClash) set.add(m.coreClash)
+      // 新数据数组
+      if (m.coreClashes && Array.isArray(m.coreClashes)) {
+        m.coreClashes.forEach((c) => set.add(c))
+      }
     })
     return Array.from(set).sort()
   }, [motions])
@@ -46,7 +51,10 @@ export default function MotionListPage() {
       if (kw && !(m.text || '').toLowerCase().includes(kw)) return false
       if (activeMotionType && m.motionType !== activeMotionType) return false
       if (activeCoreClashes.length > 0) {
-        if (!m.coreClash || !activeCoreClashes.includes(m.coreClash)) return false
+        // 兼容旧数据单字符串
+        const motionClashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
+        // 只要有一个匹配就算命中
+        if (!motionClashes.some((c) => activeCoreClashes.includes(c))) return false
       }
       if (activeTags.length > 0) {
         const tags = m.tags || []
@@ -270,13 +278,14 @@ export default function MotionListPage() {
                 {m.text || '(无 Motion 文本)'}
               </p>
               {m.source && <p className="text-xs text-stone-500">{m.source}</p>}
-              {((m.tags && m.tags.length > 0) || m.motionType || m.coreClash || linkedModules.length > 0) && (
+              {((m.tags && m.tags.length > 0) || m.motionType || m.coreClashes?.length > 0 || m.coreClash || linkedModules.length > 0) && (
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {m.coreClash && (
-                    <span className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
-                      ⚔️ {m.coreClash}
+                  {/* 兼容旧数据单字符串 + 新数据数组 */}
+                  {(m.coreClashes || (m.coreClash ? [m.coreClash] : [])).map((c) => (
+                    <span key={c} className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
+                      ⚔️ {c}
                     </span>
-                  )}
+                  ))}
                   {m.motionType && (
                     <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
                       {m.motionType}

@@ -13,6 +13,7 @@ import DrillPickerPage from './pages/DrillPickerPage'
 import DrillSessionPage from './pages/DrillSessionPage'
 import PoiPickerPage from './pages/PoiPickerPage'
 import PoiSessionPage from './pages/PoiSessionPage'
+import MotionTypeGuidePage from './pages/MotionTypeGuidePage'
 import DataPage from './pages/DataPage'
 import SetupNotice from './components/SetupNotice'
 
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/poi" element={<PoiPickerPage />} />
         <Route path="/poi/:id" element={<PoiSessionPage />} />
         <Route path="/coach" element={<CoachPage />} />
+        <Route path="/motion-type-notes" element={<MotionTypeGuidePage />} />
         <Route path="/data" element={<DataPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

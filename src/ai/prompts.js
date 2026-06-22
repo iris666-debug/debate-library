@@ -8,8 +8,17 @@ export function buildPoiPrompt(motion, side) {
     argsText += `\n${userSide}论点${i + 1}:\n`
     if (a.claim_en || a.claim_zh)
       argsText += `Claim: ${a.claim_en || a.claim_zh}\n`
-    if (a.mechanism_en || a.mechanism_zh)
+
+    // Mechanism 支持拆步骤
+    if (a.mechanism_points && a.mechanism_points.length > 0) {
+      argsText += `Mechanism:\n`
+      a.mechanism_points.forEach((p, idx) => {
+        argsText += `  步骤${idx + 1}: ${p.text_en || p.text_zh}\n`
+      })
+    } else if (a.mechanism_en || a.mechanism_zh) {
       argsText += `Mechanism: ${a.mechanism_en || a.mechanism_zh}\n`
+    }
+
     if (a.comparative_en || a.comparative_zh)
       argsText += `Comparative: ${a.comparative_en || a.comparative_zh}\n`
     if (a.impact_en || a.impact_zh)
@@ -35,8 +44,17 @@ export function buildWeaknessPrompt(motion) {
       text += `论点${i + 1}:\n`
       if (a.claim_en || a.claim_zh)
         text += `Claim: ${a.claim_en || a.claim_zh}\n`
-      if (a.mechanism_en || a.mechanism_zh)
+
+      // Mechanism 支持拆步骤
+      if (a.mechanism_points && a.mechanism_points.length > 0) {
+        text += `Mechanism:\n`
+        a.mechanism_points.forEach((p, idx) => {
+          text += `  步骤${idx + 1}: ${p.text_en || p.text_zh}\n`
+        })
+      } else if (a.mechanism_en || a.mechanism_zh) {
         text += `Mechanism: ${a.mechanism_en || a.mechanism_zh}\n`
+      }
+
       if (a.comparative_en || a.comparative_zh)
         text += `Comparative: ${a.comparative_en || a.comparative_zh}\n`
       if (a.impact_en || a.impact_zh)
@@ -57,19 +75,27 @@ ${oppText}
 要求:
 1. 按"正方论点"/"反方论点"分两部分
 2. 逐条指出每个论点在 claim/mechanism/comparative/impact 里最薄弱的一环
-3. 最后总结整道题的结构性短板
-4. 用简体中文输出，直接指出问题，不需要客套`
+3. 对于 Mechanism 拆成多步骤的论点，检查每一步推理是否成立、步骤之间是否有逻辑跳跃
+4. 最后总结整道题的结构性短板
+5. 用简体中文输出，直接指出问题，不需要客套`
 }
 
 export function buildSimilarPrompt(motion, allMotions) {
-  // 优先走 Core Clash 精确匹配
-  if (motion.coreClash) {
-    const sameClash = allMotions.filter(
-      (m) => m.id !== motion.id && m.coreClash === motion.coreClash
-    )
+  // 优先走 Core Clash 精确匹配（兼容旧数据单字符串 + 新数据数组）
+  const motionClashes = motion.coreClashes || (motion.coreClash ? [motion.coreClash] : [])
+
+  if (motionClashes.length > 0) {
+    // 找所有匹配任一 Core Clash 的题目
+    const sameClash = allMotions.filter((m) => {
+      if (m.id === motion.id) return false
+      const otherClashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
+      return otherClashes.some((c) => motionClashes.includes(c))
+    })
+
     if (sameClash.length > 0) {
       const list = sameClash.map((m) => `- ${m.text}`).join('\n')
-      return `你是一位BP辩论教练。以下题目都属于同一种核心矛盾结构"${motion.coreClash}"：
+      const clashesStr = motionClashes.join(' / ')
+      return `你是一位BP辩论教练。以下题目都属于相同的核心矛盾结构"${clashesStr}"：
 
 当前题目: ${motion.text}
 
@@ -77,7 +103,7 @@ export function buildSimilarPrompt(motion, allMotions) {
 ${list}
 
 请用简体中文解释:
-1. 这些题目如何共享"${motion.coreClash}"这一底层矛盾结构
+1. 这些题目如何共享"${clashesStr}"这一底层矛盾结构
 2. 训练时如何做思路迁移（一道题的论证框架怎么套用到另一道）
 3. 这类结构的共同攻防要点`
     }
@@ -91,7 +117,7 @@ ${list}
   const list = otherMotions.map((t, i) => `${i + 1}. ${t}`).join('\n')
 
   let extra = ''
-  if (!motion.coreClash) {
+  if (motionClashes.length === 0) {
     extra =
       '\n4. 如果当前题目还没有标记 Core Clash，建议一个（格式如"Innovation vs Safety"）'
   }

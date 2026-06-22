@@ -34,7 +34,12 @@ export default function MotionEditPage() {
   const allCoreClashes = useMemo(() => {
     const set = new Set()
     allMotions.forEach((m) => {
+      // 兼容旧数据单字符串
       if (m.coreClash) set.add(m.coreClash)
+      // 新数据数组
+      if (m.coreClashes && Array.isArray(m.coreClashes)) {
+        m.coreClashes.forEach((c) => set.add(c))
+      }
     })
     return Array.from(set).sort()
   }, [allMotions])
@@ -56,6 +61,11 @@ export default function MotionEditPage() {
           setError('题卡不存在或已被删除')
         } else {
           const empty = makeEmptyMotion()
+          // 向后兼容：旧数据 coreClash 单字符串转为数组
+          let coreClashes = data.coreClashes || []
+          if (data.coreClash && !data.coreClashes) {
+            coreClashes = [data.coreClash]
+          }
           setMotion({
             ...empty,
             ...data,
@@ -63,7 +73,7 @@ export default function MotionEditPage() {
             oppArgs: padArgs(data.oppArgs),
             tags: data.tags || [],
             motionType: data.motionType || '',
-            coreClash: data.coreClash || '',
+            coreClashes,
             linkedModuleIds: data.linkedModuleIds || [],
           })
         }
@@ -102,7 +112,7 @@ export default function MotionEditPage() {
         source: motion.source.trim(),
         tags: motion.tags,
         motionType: motion.motionType,
-        coreClash: motion.coreClash.trim(),
+        coreClashes: motion.coreClashes,
         propArgs: motion.propArgs,
         oppArgs: motion.oppArgs,
         linkedModuleIds: motion.linkedModuleIds,
@@ -173,6 +183,12 @@ export default function MotionEditPage() {
               </option>
             ))}
           </select>
+          <p className="text-xs text-stone-500 mt-1">
+            想了解各类型的打法心得？
+            <Link to="/motion-type-notes" className="text-stone-700 hover:text-stone-900 underline ml-1">
+              去打法笔记页面
+            </Link>
+          </p>
         </Field>
         <Field label="标签">
           <TagInput
@@ -185,21 +201,14 @@ export default function MotionEditPage() {
           </p>
         </Field>
         <Field label="Core Clash（核心矛盾）">
-          <input
-            type="text"
-            value={motion.coreClash}
-            onChange={(e) => setField('coreClash', e.target.value)}
-            list="core-clash-options"
-            placeholder="例如：Innovation vs Safety"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none"
+          <TagInput
+            value={motion.coreClashes}
+            onChange={(v) => setField('coreClashes', v)}
+            suggestions={allCoreClashes}
+            placeholder="输入核心矛盾标签，如 Innovation vs Safety"
           />
-          <datalist id="core-clash-options">
-            {allCoreClashes.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
           <p className="text-xs text-stone-500 mt-1">
-            Core Clash 描述的是题目的底层矛盾结构（如 Innovation vs Safety），与"标签"（主题分类）和"模块"（论证逻辑）不同。相同 Core Clash 的题目可以做思路迁移训练。
+            Core Clash 描述的是题目的底层矛盾结构（如 Innovation vs Safety），与"标签"（主题分类）和"模块"（论证逻辑）不同。相同 Core Clash 的题目可以做思路迁移训练。一张题卡可以有多个核心矛盾。
           </p>
         </Field>
       </Section>

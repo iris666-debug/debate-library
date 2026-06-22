@@ -1,9 +1,9 @@
 import BilingualField from './BilingualField'
+import MechanismEditor from './MechanismEditor'
 import PoiEditor from './PoiEditor'
 
 const FIELDS = [
   { key: 'claim', label: 'Claim 论点' },
-  { key: 'mechanism', label: 'Mechanism 机制' },
   { key: 'comparative', label: 'Comparative 比较' },
   { key: 'impact', label: 'Impact 影响' },
 ]
@@ -38,6 +38,10 @@ export default function ArgumentEditor({ index, side, value, onChange }) {
             multiline
           />
         ))}
+        <div>
+          <div className="text-sm font-medium text-stone-700 mb-2">Mechanism 机制（拆步骤）</div>
+          <MechanismEditor value={value} onChange={onChange} />
+        </div>
         <PoiEditor pois={value.pois || []} onChange={updatePois} />
       </div>
     </div>
