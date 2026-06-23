@@ -387,6 +387,13 @@ export default function MotionEditPage() {
             <div className="flex gap-2 text-xs">
               <button
                 type="button"
+                onClick={() => setTranscriptModal(true)}
+                className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Generate from Script
+              </button>
+              <button
+                type="button"
                 onClick={() => { ensureArgs('prop'); expandAll('prop') }}
                 className="text-stone-600 hover:text-stone-900"
               >
