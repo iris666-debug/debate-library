@@ -23,6 +23,8 @@ export default function MotionEditPage() {
   const [loading, setLoading] = useState(isEdit)
   const [error, setError] = useState('')
   const [basicInfoOpen, setBasicInfoOpen] = useState(false)
+  const [reviewOpen, setReviewOpen] = useState(false)
+  const [expandedArgs, setExpandedArgs] = useState({ prop: {}, opp: {} })
   const [motion, setMotion] = useState({
     text: '',
     source: '',
@@ -114,6 +116,65 @@ export default function MotionEditPage() {
     } catch (err) {
       alert('Delete failed: ' + (err?.message || ''))
     }
+  }
+
+  const handleDuplicate = async () => {
+    if (!user?.uid) return
+
+    try {
+      const newDocRef = doc(db, 'users', user.uid, 'motions', Date.now().toString())
+      await setDoc(newDocRef, {
+        ...motion,
+        text: motion.text + ' (Copy)',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+      navigate(`/motions/${newDocRef.id}`)
+    } catch (err) {
+      alert('Duplicate failed: ' + (err?.message || ''))
+    }
+  }
+
+  const ensureArgs = (side) => {
+    const args = motion[side === 'prop' ? 'propArgs' : 'oppArgs'] || []
+    if (args.length === 0) {
+      setMotion({
+        ...motion,
+        [side === 'prop' ? 'propArgs' : 'oppArgs']: [
+          { name_en: '', name_zh: '', claim_en: '', claim_zh: '', mechanism_points: [], comparative_en: '', comparative_zh: '', impact_en: '', impact_zh: '', pois: [] },
+          { name_en: '', name_zh: '', claim_en: '', claim_zh: '', mechanism_points: [], comparative_en: '', comparative_zh: '', impact_en: '', impact_zh: '', pois: [] },
+          { name_en: '', name_zh: '', claim_en: '', claim_zh: '', mechanism_points: [], comparative_en: '', comparative_zh: '', impact_en: '', impact_zh: '', pois: [] },
+        ]
+      })
+    }
+  }
+
+  const updateArg = (side, index, newArg) => {
+    const key = side === 'prop' ? 'propArgs' : 'oppArgs'
+    const args = [...(motion[key] || [])]
+    args[index] = newArg
+    setMotion({ ...motion, [key]: args })
+  }
+
+  const toggleArgExpanded = (side, index) => {
+    setExpandedArgs(prev => ({
+      ...prev,
+      [side]: {
+        ...prev[side],
+        [index]: !prev[side][index]
+      }
+    }))
+  }
+
+  const expandAll = (side) => {
+    const args = motion[side === 'prop' ? 'propArgs' : 'oppArgs'] || []
+    const newExpanded = {}
+    args.forEach((_, i) => { newExpanded[i] = true })
+    setExpandedArgs(prev => ({ ...prev, [side]: newExpanded }))
+  }
+
+  const collapseAll = (side) => {
+    setExpandedArgs(prev => ({ ...prev, [side]: {} }))
   }
 
   if (loading) {
@@ -260,6 +321,100 @@ export default function MotionEditPage() {
             className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
             placeholder="Background and framing..."
           />
+        </div>
+
+        {/* Pro Arguments */}
+        <div className="border-t border-stone-200 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm">Pro Arguments</h3>
+            <div className="flex gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => { ensureArgs('prop'); expandAll('prop') }}
+                className="text-stone-600 hover:text-stone-900"
+              >
+                Expand All
+              </button>
+              <span className="text-stone-300">|</span>
+              <button
+                type="button"
+                onClick={() => collapseAll('prop')}
+                className="text-stone-600 hover:text-stone-900"
+              >
+                Collapse All
+              </button>
+            </div>
+          </div>
+          <div className="pl-4 space-y-3">
+            {(motion.propArgs || []).slice(0, 3).map((arg, i) => (
+              <div key={i} className="border border-stone-200 rounded-lg">
+                <div
+                  onClick={() => toggleArgExpanded('prop', i)}
+                  className="cursor-pointer p-3 flex items-center justify-between hover:bg-stone-50"
+                >
+                  <span className="text-sm font-medium">Pro Argument {i + 1}</span>
+                  <span className="text-stone-400">{expandedArgs.prop[i] ? '▲' : '▼'}</span>
+                </div>
+                {expandedArgs.prop[i] && (
+                  <div className="p-3 border-t border-stone-200">
+                    <ArgumentEditor
+                      index={i}
+                      side="prop"
+                      value={arg}
+                      onChange={(newArg) => updateArg('prop', i, newArg)}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Con Arguments */}
+        <div className="border-t border-stone-200 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm">Con Arguments</h3>
+            <div className="flex gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => { ensureArgs('opp'); expandAll('opp') }}
+                className="text-stone-600 hover:text-stone-900"
+              >
+                Expand All
+              </button>
+              <span className="text-stone-300">|</span>
+              <button
+                type="button"
+                onClick={() => collapseAll('opp')}
+                className="text-stone-600 hover:text-stone-900"
+              >
+                Collapse All
+              </button>
+            </div>
+          </div>
+          <div className="pl-4 space-y-3">
+            {(motion.oppArgs || []).slice(0, 3).map((arg, i) => (
+              <div key={i} className="border border-stone-200 rounded-lg">
+                <div
+                  onClick={() => toggleArgExpanded('opp', i)}
+                  className="cursor-pointer p-3 flex items-center justify-between hover:bg-stone-50"
+                >
+                  <span className="text-sm font-medium">Con Argument {i + 1}</span>
+                  <span className="text-stone-400">{expandedArgs.opp[i] ? '▲' : '▼'}</span>
+                </div>
+                {expandedArgs.opp[i] && (
+                  <div className="p-3 border-t border-stone-200">
+                    <ArgumentEditor
+                      index={i}
+                      side="opp"
+                      value={arg}
+                      onChange={(newArg) => updateArg('opp', i, newArg)}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </form>
