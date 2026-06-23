@@ -16,6 +16,7 @@ export default function Layout() {
             <NavItem to="/drill">复述</NavItem>
             <NavItem to="/poi">POI</NavItem>
             <NavItem to="/coach">AI教练</NavItem>
+            <NavItem to="/clash">Clash</NavItem>
             <NavItem to="/motion-type-notes">打法笔记</NavItem>
             <NavItem to="/data">数据</NavItem>
           </nav>
