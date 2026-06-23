@@ -1,10 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthProvider'
 import { useUserCollection } from '../hooks/useCollection'
-import { MOTION_TYPES } from '../data/debateTaxonomy'
+import { updateMotion, deleteMotion } from '../data/motions'
+import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import ArgumentDisplay from '../components/ArgumentDisplay'
+import ArgumentEditor from '../components/ArgumentEditor'
+import TagInput from '../components/TagInput'
+import ModuleMultiSelect from '../components/ModuleMultiSelect'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function MotionListPage() {
+  const { user } = useAuth()
   const { items: motions, loading } = useUserCollection('motions', {
     orderBy: 'updatedAt',
     orderDir: 'desc',
@@ -19,6 +26,9 @@ export default function MotionListPage() {
   const [activeMotionType, setActiveMotionType] = useState('')
   const [activeCoreClashes, setActiveCoreClashes] = useState([])
   const [expandedMotionId, setExpandedMotionId] = useState(null)
+  const [editingMotion, setEditingMotion] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(null)
 
   const moduleMap = useMemo(() => {
     const m = {}
@@ -37,220 +47,148 @@ export default function MotionListPage() {
   const allCoreClashes = useMemo(() => {
     const set = new Set()
     motions.forEach((m) => {
-      // 兼容旧数据单字符串
-      if (m.coreClash) set.add(m.coreClash)
-      // 新数据数组
-      if (m.coreClashes && Array.isArray(m.coreClashes)) {
-        m.coreClashes.forEach((c) => set.add(c))
-      }
+      const clashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
+      clashes.forEach((c) => set.add(c))
     })
     return Array.from(set).sort()
   }, [motions])
 
   const filtered = useMemo(() => {
-    const kw = search.trim().toLowerCase()
     return motions.filter((m) => {
-      if (kw && !(m.text || '').toLowerCase().includes(kw)) return false
-      if (activeMotionType && m.motionType !== activeMotionType) return false
-      if (activeCoreClashes.length > 0) {
-        // 兼容旧数据单字符串
-        const motionClashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
-        // 只要有一个匹配就算命中
-        if (!motionClashes.some((c) => activeCoreClashes.includes(c))) return false
+      if (search.trim()) {
+        const s = search.toLowerCase()
+        const text = (m.text || '').toLowerCase()
+        const source = (m.source || '').toLowerCase()
+        if (!text.includes(s) && !source.includes(s)) return false
       }
       if (activeTags.length > 0) {
         const tags = m.tags || []
         if (!activeTags.some((t) => tags.includes(t))) return false
       }
+      if (activeMotionType && m.motionType !== activeMotionType) return false
+      if (activeCoreClashes.length > 0) {
+        const clashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
+        if (!activeCoreClashes.some((c) => clashes.includes(c))) return false
+      }
       return true
     })
   }, [motions, search, activeTags, activeMotionType, activeCoreClashes])
 
-  const toggleTag = (t) => {
-    setActiveTags((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    )
+  const handleExpand = (motion) => {
+    if (expandedMotionId === motion.id) {
+      setExpandedMotionId(null)
+      setEditingMotion(null)
+    } else {
+      setExpandedMotionId(motion.id)
+      setEditingMotion(JSON.parse(JSON.stringify(motion)))
+    }
   }
 
-  const toggleCoreClash = (c) => {
-    setActiveCoreClashes((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
-    )
+  const handleSave = async () => {
+    if (!editingMotion) return
+    setSaving(true)
+    try {
+      await updateMotion(user.uid, editingMotion.id, editingMotion)
+      setExpandedMotionId(null)
+      setEditingMotion(null)
+    } catch (err) {
+      alert('保存失败: ' + (err?.message || ''))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleting) return
+    try {
+      await deleteMotion(user.uid, deleting.id)
+      setDeleting(null)
+      if (expandedMotionId === deleting.id) {
+        setExpandedMotionId(null)
+        setEditingMotion(null)
+      }
+    } catch (err) {
+      alert('删除失败: ' + (err?.message || ''))
+    }
+  }
+
+  const updateField = (field, value) => {
+    setEditingMotion((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const updateArg = (side, index, value) => {
+    setEditingMotion((prev) => {
+      const args = [...prev[side === 'prop' ? 'propArgs' : 'oppArgs']]
+      args[index] = value
+      return { ...prev, [side === 'prop' ? 'propArgs' : 'oppArgs']: args }
+    })
   }
 
   const hasFilters = search.trim() || activeTags.length > 0 || activeMotionType || activeCoreClashes.length > 0
   const isEmpty = !loading && motions.length === 0
-  const isFirstTime = isEmpty && modules.length === 0
   const isFilteredEmpty = !loading && motions.length > 0 && filtered.length === 0
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">题卡库</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Motions</h1>
           <p className="text-sm text-stone-500 mt-1">
             {loading
-              ? '加载中…'
+              ? 'Loading...'
               : hasFilters
-              ? `匹配 ${filtered.length} / ${motions.length} 张`
-              : `共 ${motions.length} 张题卡`}
+              ? `${filtered.length} / ${motions.length} matches`
+              : `${motions.length} motion cards`}
           </p>
         </div>
         <Link
           to="/motions/new"
           className="px-4 py-2 rounded-lg bg-stone-900 text-white text-sm hover:bg-stone-800"
         >
-          + 新增题卡
+          + New Motion
         </Link>
       </div>
 
-      {motions.length > 0 && (
-        <div className="space-y-3">
-          <div className="relative">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="搜索 Motion 文本…"
-              className="w-full rounded-lg border border-stone-300 pl-9 pr-3 py-2 text-sm focus:border-stone-900 focus:outline-none bg-white"
-            />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm select-none">
-              🔎
-            </span>
-          </div>
-
-          {MOTION_TYPES.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 items-center">
-              {MOTION_TYPES.map((t) => {
-                const active = activeMotionType === t.value
-                return (
-                  <button
-                    key={t.value}
-                    type="button"
-                    title={t.label}
-                    onClick={() => setActiveMotionType(active ? '' : t.value)}
-                    className={
-                      'rounded-md px-2.5 py-1 text-xs transition ' +
-                      (active
-                        ? 'bg-stone-700 text-white'
-                        : 'bg-stone-200 text-stone-700 hover:bg-stone-300')
-                    }
-                  >
-                    {t.value}
-                  </button>
+      {/* Filters */}
+      <div className="space-y-3">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search motion text or source..."
+          className="w-full px-4 py-2 border border-stone-300 rounded-lg text-sm"
+        />
+        <div className="flex flex-wrap gap-2">
+          {allTags.slice(0, 15).map((t) => (
+            <button
+              key={t}
+              onClick={() =>
+                setActiveTags((prev) =>
+                  prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
                 )
-              })}
-            </div>
-          )}
-
-          {allCoreClashes.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 items-center">
-              {allCoreClashes.map((c) => {
-                const active = activeCoreClashes.includes(c)
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => toggleCoreClash(c)}
-                    className={
-                      'rounded-md px-2.5 py-1 text-xs transition ' +
-                      (active
-                        ? 'bg-stone-900 text-white'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200')
-                    }
-                  >
-                    ⚔️ {c}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 items-center">
-              {allTags.map((t) => {
-                const active = activeTags.includes(t)
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => toggleTag(t)}
-                    className={
-                      'rounded-md px-2.5 py-1 text-xs transition ' +
-                      (active
-                        ? 'bg-stone-900 text-white'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200')
-                    }
-                  >
-                    #{t}
-                  </button>
-                )
-              })}
-              {hasFilters && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch('')
-                    setActiveTags([])
-                    setActiveMotionType('')
-                    setActiveCoreClashes([])
-                  }}
-                  className="text-xs text-stone-500 hover:text-stone-900 ml-1"
-                >
-                  清除筛选
-                </button>
-              )}
-            </div>
-          )}
+              }
+              className={
+                'px-3 py-1 rounded-lg text-xs transition ' +
+                (activeTags.includes(t)
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+              }
+            >
+              #{t}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {isFirstTime && (
-        <div className="bg-white border border-stone-200 rounded-2xl p-8 space-y-5">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">👋 欢迎使用辩题库</h2>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              这是只属于你自己的 BP 辩题档案与训练工具。把题卡和万能模块攒起来,用复述训练和 POI 自答把它们内化成可调取的论点。
-            </p>
-            <p className="text-sm text-stone-500 leading-relaxed">
-              数据自动同步到云端,电脑手机用同一账号都能继续看到同样的内容。
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/motions/new"
-              className="px-4 py-2 rounded-lg bg-stone-900 text-white text-sm hover:bg-stone-800"
-            >
-              + 录入第一张题卡
-            </Link>
-            <Link
-              to="/modules"
-              className="px-4 py-2 rounded-lg border border-stone-300 text-sm hover:bg-stone-100"
-            >
-              + 添加万能模块
-            </Link>
-            <Link
-              to="/data"
-              className="px-4 py-2 rounded-lg border border-stone-300 text-sm hover:bg-stone-100"
-            >
-              📂 从备份导入
-            </Link>
-          </div>
-          <p className="text-xs text-stone-400 leading-relaxed pt-2 border-t border-stone-100">
-            建议从模块开始建几条常用的(经济激励、权利保护…),录题卡时就能直接关联。
-          </p>
-        </div>
-      )}
-
-      {isEmpty && !isFirstTime && (
-        <div className="bg-white border border-dashed border-stone-300 rounded-2xl p-12 text-center">
-          <p className="text-stone-500 text-sm">还没有题卡。点上方"新增题卡"开始录入。</p>
+      {isEmpty && (
+        <div className="bg-white border border-dashed border-stone-300 rounded-2xl p-8 text-center">
+          <p className="text-stone-500 text-sm">No motions yet. Create your first one!</p>
         </div>
       )}
 
       {isFilteredEmpty && (
         <div className="bg-white border border-dashed border-stone-300 rounded-2xl p-8 text-center">
-          <p className="text-stone-500 text-sm">没有匹配的题卡。</p>
+          <p className="text-stone-500 text-sm">No matches found.</p>
           <button
             onClick={() => {
               setSearch('')
@@ -260,71 +198,238 @@ export default function MotionListPage() {
             }}
             className="text-xs text-stone-600 hover:text-stone-900 mt-2 underline"
           >
-            清除筛选
+            Clear filters
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="space-y-3">
         {filtered.map((m) => {
           const linkedModules = (m.linkedModuleIds || [])
             .map((mid) => moduleMap[mid])
             .filter(Boolean)
+          const isExpanded = expandedMotionId === m.id
+          const editing = isExpanded ? editingMotion : null
+
           return (
-            <Link
-              key={m.id}
-              to={`/motions/${m.id}`}
-              className="bg-white border border-stone-200 rounded-2xl p-4 space-y-2 hover:border-stone-400 hover:shadow-sm transition block"
-            >
-              <p className="font-medium leading-snug line-clamp-2">
-                {m.text || '(无 Motion 文本)'}
-              </p>
-              {m.source && <p className="text-xs text-stone-500">{m.source}</p>}
-              {((m.tags && m.tags.length > 0) || m.motionType || m.coreClashes?.length > 0 || m.coreClash || linkedModules.length > 0) && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {/* 兼容旧数据单字符串 + 新数据数组 */}
-                  {(m.coreClashes || (m.coreClash ? [m.coreClash] : [])).map((c) => (
-                    <span key={c} className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
-                      ⚔️ {c}
-                    </span>
-                  ))}
-                  {m.motionType && (
-                    <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
-                      {m.motionType}
-                    </span>
-                  )}
-                  {(m.tags || []).map((t) => (
-                    <span
-                      key={t}
-                      className={
-                        'rounded-md px-2 py-0.5 text-xs ' +
-                        (activeTags.includes(t)
-                          ? 'bg-stone-900 text-white'
-                          : 'bg-stone-100 text-stone-700')
-                      }
+            <div key={m.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+              <div
+                onClick={() => handleExpand(m)}
+                className="p-4 cursor-pointer hover:bg-stone-50 transition"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="font-medium leading-snug">
+                      {m.text || '(No motion text)'}
+                    </p>
+                    {m.source && <p className="text-xs text-stone-500 mt-1">{m.source}</p>}
+                  </div>
+                  <div className="text-stone-400">
+                    {isExpanded ? '▲' : '▼'}
+                  </div>
+                </div>
+                {((m.tags && m.tags.length > 0) || m.motionType || m.coreClashes?.length > 0 || m.coreClash) && (
+                  <div className="flex flex-wrap gap-1.5 pt-2">
+                    {(m.coreClashes || (m.coreClash ? [m.coreClash] : [])).map((c) => (
+                      <span key={c} className="bg-stone-900 text-white rounded-md px-2 py-0.5 text-xs">
+                        ⚔️ {c}
+                      </span>
+                    ))}
+                    {m.motionType && (
+                      <span className="bg-stone-700 text-white rounded-md px-2 py-0.5 text-xs">
+                        {m.motionType}
+                      </span>
+                    )}
+                    {(m.tags || []).slice(0, 5).map((t) => (
+                      <span key={t} className="bg-stone-100 text-stone-700 rounded-md px-2 py-0.5 text-xs">
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {isExpanded && editing && (
+                <div className="border-t border-stone-200 p-4 space-y-4 bg-stone-50/50">
+                  {/* Basic Info - Collapsible */}
+                  <details className="group">
+                    <summary className="cursor-pointer font-semibold text-sm list-none flex items-center justify-between">
+                      <span>Basic Info</span>
+                      <span className="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Motion Text</label>
+                        <textarea
+                          value={editing.text}
+                          onChange={(e) => updateField('text', e.target.value)}
+                          rows={2}
+                          className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Source</label>
+                        <input
+                          value={editing.source || ''}
+                          onChange={(e) => updateField('source', e.target.value)}
+                          className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Motion Type</label>
+                        <select
+                          value={editing.motionType || ''}
+                          onChange={(e) => updateField('motionType', e.target.value)}
+                          className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        >
+                          <option value="">-- None --</option>
+                          {MOTION_TYPES.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Tags</label>
+                        <TagInput
+                          value={editing.tags || []}
+                          onChange={(v) => updateField('tags', v)}
+                          suggestions={SUGGESTED_TAGS}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Core Clash</label>
+                        <TagInput
+                          value={editing.coreClashes || []}
+                          onChange={(v) => updateField('coreClashes', v)}
+                          suggestions={allCoreClashes}
+                          placeholder="e.g. Innovation vs Safety"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Linked Frameworks</label>
+                        <ModuleMultiSelect
+                          modules={modules}
+                          value={editing.linkedModuleIds || []}
+                          onChange={(v) => updateField('linkedModuleIds', v)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-stone-700">Characterization / Status Quo</label>
+                        <textarea
+                          value={editing.characterization || ''}
+                          onChange={(e) => updateField('characterization', e.target.value)}
+                          rows={2}
+                          className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                  </details>
+
+                  {/* Arguments - Expanded by Default */}
+                  <section className="space-y-3">
+                    <h3 className="font-semibold text-sm">Proposition</h3>
+                    {(editing.propArgs || []).map((a, i) => (
+                      <ArgumentEditor
+                        key={i}
+                        index={i}
+                        side="prop"
+                        value={a}
+                        onChange={(v) => updateArg('prop', i, v)}
+                      />
+                    ))}
+                  </section>
+
+                  <section className="space-y-3">
+                    <h3 className="font-semibold text-sm">Opposition</h3>
+                    {(editing.oppArgs || []).map((a, i) => (
+                      <ArgumentEditor
+                        key={i}
+                        index={i}
+                        side="opp"
+                        value={a}
+                        onChange={(v) => updateArg('opp', i, v)}
+                      />
+                    ))}
+                  </section>
+
+                  {/* Post-Round Review */}
+                  <section className="space-y-3 border-t pt-4">
+                    <h3 className="font-semibold text-sm">Post-Round Review</h3>
+                    <div>
+                      <label className="text-sm font-medium text-stone-700">Adjudicator Feedback</label>
+                      <textarea
+                        value={editing.postRoundReview?.adjudicatorFeedback || ''}
+                        onChange={(e) =>
+                          updateField('postRoundReview', {
+                            ...editing.postRoundReview,
+                            adjudicatorFeedback: e.target.value,
+                          })
+                        }
+                        rows={3}
+                        className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        placeholder="Notes from judge's feedback..."
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-stone-700">Next Improvement</label>
+                      <textarea
+                        value={editing.postRoundReview?.nextImprovement || ''}
+                        onChange={(e) =>
+                          updateField('postRoundReview', {
+                            ...editing.postRoundReview,
+                            nextImprovement: e.target.value,
+                          })
+                        }
+                        rows={2}
+                        className="w-full mt-1 px-3 py-2 border border-stone-300 rounded-lg text-sm"
+                        placeholder="What to improve next time..."
+                      />
+                    </div>
+                  </section>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 justify-end pt-4 border-t">
+                    <button
+                      onClick={() => setDeleting(m)}
+                      className="px-4 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
                     >
-                      #{t}
-                    </span>
-                  ))}
-                  {linkedModules.slice(0, 3).map((mod) => (
-                    <span
-                      key={mod.id}
-                      className="bg-amber-50 text-amber-800 rounded-md px-2 py-0.5 text-xs"
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => {
+                        setExpandedMotionId(null)
+                        setEditingMotion(null)
+                      }}
+                      className="px-4 py-2 text-sm border border-stone-300 rounded-lg hover:bg-stone-100"
                     >
-                      {mod.name_zh || mod.name_en || '(未命名)'}
-                    </span>
-                  ))}
-                  {linkedModules.length > 3 && (
-                    <span className="text-xs text-stone-400 self-center">
-                      +{linkedModules.length - 3}
-                    </span>
-                  )}
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="px-4 py-2 text-sm bg-stone-900 text-white rounded-lg hover:bg-stone-800 disabled:opacity-50"
+                    >
+                      {saving ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
                 </div>
               )}
-            </Link>
+            </div>
           )
         })}
       </div>
+
+      {deleting && (
+        <ConfirmDialog
+          title="Delete Motion"
+          message={`Are you sure you want to delete "${deleting.text}"?`}
+          confirmText="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
     </div>
   )
 }

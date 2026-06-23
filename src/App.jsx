@@ -3,7 +3,6 @@ import { useAuth } from './auth/AuthProvider'
 import LoginPage from './auth/LoginPage'
 import Layout from './components/Layout'
 import MotionListPage from './pages/MotionListPage'
-import MotionDetailPage from './pages/MotionDetailPage'
 import MotionEditPage from './pages/MotionEditPage'
 import ModuleListPage from './pages/ModuleListPage'
 import ModuleDetailPage from './pages/ModuleDetailPage'
@@ -36,7 +35,6 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<MotionListPage />} />
         <Route path="/motions/new" element={<MotionEditPage />} />
-        <Route path="/motions/:id" element={<MotionDetailPage />} />
         <Route path="/motions/:id/edit" element={<MotionEditPage />} />
         <Route path="/modules" element={<ModuleListPage />} />
         <Route path="/modules/:id" element={<ModuleDetailPage />} />
