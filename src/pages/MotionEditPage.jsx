@@ -11,7 +11,7 @@ import {
 } from '../data/motions'
 import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import { askGemini } from '../ai/gemini'
-import { buildGenerateSideArgumentsPrompt } from '../ai/prompts'
+import { buildGenerateSideArgumentsPrompt, buildTranscriptExtractPrompt } from '../ai/prompts'
 import TagInput from '../components/TagInput'
 import ArgumentEditor from '../components/ArgumentEditor'
 import ModuleMultiSelect from '../components/ModuleMultiSelect'
@@ -50,6 +50,9 @@ export default function MotionEditPage() {
   const [loading, setLoading] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
   const [generatingSide, setGeneratingSide] = useState({ prop: false, opp: false })
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false)
+  const [transcript, setTranscript] = useState('')
+  const [generatingTranscript, setGeneratingTranscript] = useState(false)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -214,6 +217,50 @@ export default function MotionEditPage() {
     return null
   }
 
+  const handleGenerateFromTranscript = async () => {
+    if (!motion.text.trim()) {
+      setError('请先填写辩题文本')
+      return
+    }
+    if (!transcript.trim()) {
+      setError('请粘贴文字稿')
+      return
+    }
+
+    setGeneratingTranscript(true)
+    setError('')
+
+    try {
+      const prompt = buildTranscriptExtractPrompt(motion.text, transcript)
+      const result = await askGemini(prompt)
+
+      let jsonStr = result.trim()
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/```\s*$/, '')
+      } else if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/^```\s*/, '').replace(/```\s*$/, '')
+      }
+
+      const data = JSON.parse(jsonStr)
+
+      // 填入编辑器（不直接覆盖，先展示预览）
+      if (window.confirm('已从文字稿提取论点，点击确认填入编辑器（会覆盖现有论点）')) {
+        setMotion((prev) => ({
+          ...prev,
+          propArgs: data.propArgs || prev.propArgs,
+          oppArgs: data.oppArgs || prev.oppArgs,
+        }))
+        setShowTranscriptModal(false)
+        setTranscript('')
+      }
+    } catch (err) {
+      console.error('文字稿提取失败', err)
+      setError(err?.message || '文字稿提取失败，请重试')
+    } finally {
+      setGeneratingTranscript(false)
+    }
+  }
+
   const motionTypeHint = getMotionTypeHint()
 
   if (loading) {
@@ -311,6 +358,17 @@ export default function MotionEditPage() {
           {motionTypeHint}
         </div>
       )}
+
+      {/* 从文字稿生成按钮 */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowTranscriptModal(true)}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+        >
+          📝 从文字稿生成论点
+        </button>
+      </div>
 
       <Section title="正方论点 (Proposition)">
         <div className="flex items-center gap-3 mb-4">
