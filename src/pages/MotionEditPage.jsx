@@ -264,7 +264,27 @@ export default function MotionEditPage() {
   const motionTypeHint = getMotionTypeHint()
 
   if (loading) {
-    return <div className="text-sm text-stone-400">加载中…</div>
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900 mx-auto mb-4"></div>
+          <p className="text-stone-600">Loading motion...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Link to="/" className="text-stone-600 hover:text-stone-900 underline">
+            ← Back to list
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
