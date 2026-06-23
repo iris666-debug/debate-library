@@ -278,6 +278,54 @@ Example output format:
 | "precautionary principle applies" | Shifts burden of proof to those proposing change, embedding risk-aversion as default |`
 }
 
+export function buildTranscriptExtractPrompt(motionText, transcript) {
+  return `你是一位BP辩论教练。用户提供了一场比赛的文字稿，请提取论点信息并按以下JSON格式返回（不要有任何Markdown代码块标记，直接返回JSON）：
+
+辩题: ${motionText}
+
+文字稿:
+${transcript}
+
+要求输出格式：
+{
+  "propArgs": [
+    {
+      "name_en": "英文论点名称",
+      "name_zh": "中文论点名称",
+      "claim_en": "英文Claim",
+      "claim_zh": "中文Claim",
+      "mechanism_points": [
+        {"text_en": "Step 1", "text_zh": "第1步"},
+        {"text_en": "Step 2", "text_zh": "第2步"},
+        {"text_en": "Step 3", "text_zh": "第3步"}
+      ],
+      "comparative_en": "英文Comparative",
+      "comparative_zh": "中文Comparative",
+      "impact_en": "英文Impact",
+      "impact_zh": "中文Impact",
+      "pois": [
+        {
+          "question_en": "POI question",
+          "question_zh": "POI质询",
+          "answer_en": "Answer",
+          "answer_zh": "回答"
+        }
+      ]
+    }
+  ],
+  "oppArgs": [
+    // 同样结构
+  ]
+}
+
+要求:
+1. 从文字稿中提取正反双方各最多3个论点
+2. Mechanism 必须拆成3个推理步骤（这是最重要的！）
+3. 如果文字稿里有POI质询及回答，也要提取
+4. 如果某些字段文字稿里没有，填空字符串
+5. 直接返回JSON，不要其他文字`
+}
+
 export function buildGenerateArgumentsPrompt(motionText) {
   return `你是一位经验丰富的BP辩论教练。请为以下辩题生成完整的论点草稿。
 

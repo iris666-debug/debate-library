@@ -116,9 +116,14 @@ export default function MotionEditPage() {
         tags: motion.tags,
         motionType: motion.motionType,
         coreClashes: motion.coreClashes,
+        characterization: motion.characterization || '',
         propArgs: motion.propArgs,
         oppArgs: motion.oppArgs,
         linkedModuleIds: motion.linkedModuleIds,
+        postRoundReview: motion.postRoundReview || {
+          adjudicatorFeedback: '',
+          nextImprovement: '',
+        },
       }
       let savedId = id
       if (isEdit) {
@@ -284,6 +289,18 @@ export default function MotionEditPage() {
           />
           <p className="text-xs text-stone-500 mt-1">
             Core Clash 描述的是题目的底层矛盾结构（如 Innovation vs Safety），与"标签"（主题分类）和"模块"（论证逻辑）不同。相同 Core Clash 的题目可以做思路迁移训练。一张题卡可以有多个核心矛盾。
+          </p>
+        </Field>
+        <Field label="Characterization / Status Quo">
+          <textarea
+            value={motion.characterization || ''}
+            onChange={(e) => setField('characterization', e.target.value)}
+            rows={3}
+            placeholder="背景说明、问题定性、现状描述..."
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-900 focus:outline-none resize-y"
+          />
+          <p className="text-xs text-stone-500 mt-1">
+            在论证之前，先界定背景和现状，帮助明确辩题的前提条件
           </p>
         </Field>
       </Section>
