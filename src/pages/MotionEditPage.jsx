@@ -239,6 +239,75 @@ export default function MotionEditPage() {
     setPreviewResult(null)
   }
 
+  const handleGenerateStakeholders = async () => {
+    if (!motion.text.trim()) {
+      alert('Please enter motion text first')
+      return
+    }
+
+    setGeneratingStakeholder(true)
+    try {
+      const prompt = buildStakeholderPrompt(motion.text)
+      const result = await askGemini(prompt)
+      const parsed = JSON.parse(result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+      setStakeholders(parsed)
+    } catch (err) {
+      console.error('Stakeholder generation error:', err)
+      alert('Failed to generate stakeholders: ' + (err?.message || ''))
+    } finally {
+      setGeneratingStakeholder(false)
+    }
+  }
+
+  const handleGenerateStakeholderArg = async (stakeholder, index) => {
+    setStakeholderArgPreview({ ...stakeholderArgPreview, [index]: { loading: true } })
+
+    try {
+      const prompt = buildStakeholderArgumentPrompt(motion.text, stakeholder, 'prop')
+      const result = await askGemini(prompt)
+      const parsed = JSON.parse(result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+      setStakeholderArgPreview({ ...stakeholderArgPreview, [index]: { data: parsed, loading: false } })
+    } catch (err) {
+      console.error('Argument generation error:', err)
+      alert('Failed to generate argument: ' + (err?.message || ''))
+      setStakeholderArgPreview({ ...stakeholderArgPreview, [index]: { loading: false } })
+    }
+  }
+
+  const handleAddStakeholderArg = (argData, side) => {
+    const newArg = {
+      name_en: argData.claim_en || '',
+      name_zh: argData.claim_zh || '',
+      claim_en: argData.claim_en || '',
+      claim_zh: argData.claim_zh || '',
+      mechanism_points: argData.mechanism_points || [],
+      comparative_en: '',
+      comparative_zh: '',
+      impact_en: argData.impact_en || '',
+      impact_zh: argData.impact_zh || '',
+      pois: []
+    }
+
+    const key = side === 'prop' ? 'propArgs' : 'oppArgs'
+    const args = [...(motion[key] || [])]
+
+    // Find first empty slot
+    let added = false
+    for (let i = 0; i < 3; i++) {
+      if (!args[i] || !args[i].name_en) {
+        args[i] = newArg
+        added = true
+        break
+      }
+    }
+
+    if (added) {
+      setMotion({ ...motion, [key]: args })
+    } else {
+      alert('All argument slots are full')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -381,6 +450,67 @@ export default function MotionEditPage() {
             className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
             placeholder="Background and framing of the debate..."
           />
+
+          {/* Stakeholder Analysis Button */}
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={handleGenerateStakeholders}
+              disabled={generatingStakeholder || !motion.text.trim()}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {generatingStakeholder ? 'Analyzing...' : 'Stakeholder Analysis'}
+            </button>
+          </div>
+
+          {/* Stakeholders Display */}
+          {stakeholders && stakeholders.length > 0 && (
+            <div className="mt-4 space-y-3 p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-semibold text-sm">Stakeholders:</h4>
+              {stakeholders.map((sh, i) => (
+                <div key={i} className="bg-white p-3 rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{sh.name_en} ({sh.name_zh})</p>
+                      <p className="text-xs text-stone-600">{sh.why_care}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateStakeholderArg(sh, i)}
+                      disabled={stakeholderArgPreview[i]?.loading}
+                      className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {stakeholderArgPreview[i]?.loading ? 'Generating...' : 'Generate Argument'}
+                    </button>
+                  </div>
+
+                  {/* Argument Preview */}
+                  {stakeholderArgPreview[i]?.data && (
+                    <div className="mt-2 p-2 bg-stone-50 rounded text-xs space-y-1">
+                      <p><strong>Claim:</strong> {stakeholderArgPreview[i].data.claim_en}</p>
+                      <p><strong>Impact:</strong> {stakeholderArgPreview[i].data.impact_en}</p>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAddStakeholderArg(stakeholderArgPreview[i].data, 'prop')}
+                          className="px-2 py-1 bg-stone-900 text-white rounded text-xs hover:bg-stone-800"
+                        >
+                          Add to Prop
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddStakeholderArg(stakeholderArgPreview[i].data, 'opp')}
+                          className="px-2 py-1 bg-stone-900 text-white rounded text-xs hover:bg-stone-800"
+                        >
+                          Add to Opp
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Pro Arguments */}
