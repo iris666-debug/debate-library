@@ -209,13 +209,22 @@ export default function MotionEditPage() {
         </Link>
         <div className="flex gap-3">
           {isEdit && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="px-4 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
-            >
-              Delete
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleDuplicate}
+                className="px-4 py-2 text-sm border border-stone-300 rounded-lg hover:bg-stone-50"
+              >
+                Duplicate
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+              >
+                Delete
+              </button>
+            </>
           )}
           <button
             type="submit"
@@ -242,18 +251,6 @@ export default function MotionEditPage() {
             />
             <SpeakButton text={motion.text} label="🔊" />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-2">
-            Source
-          </label>
-          <input
-            value={motion.source}
-            onChange={(e) => setMotion({ ...motion, source: e.target.value })}
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none"
-            placeholder="WUDC 2024 R3"
-          />
         </div>
 
         {/* Basic Info - Collapsible */}
@@ -289,6 +286,7 @@ export default function MotionEditPage() {
                 value={motion.tags}
                 onChange={(tags) => setMotion({ ...motion, tags })}
                 suggestions={SUGGESTED_TAGS}
+                placeholder="Add tags..."
               />
             </div>
           </div>
@@ -416,6 +414,52 @@ export default function MotionEditPage() {
             ))}
           </div>
         </div>
+
+        {/* Post-Round Review - Collapsible */}
+        <details open={reviewOpen} onToggle={(e) => setReviewOpen(e.target.open)} className="border-t border-stone-200 pt-4">
+          <summary className="cursor-pointer font-semibold text-sm py-2 list-none flex items-center justify-between">
+            <span>Post-Round Review</span>
+            <span className="text-stone-400">{reviewOpen ? '▲' : '▼'}</span>
+          </summary>
+          <div className="mt-4 space-y-4 pl-4">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">
+                Adjudicator Feedback
+              </label>
+              <textarea
+                value={motion.postRoundReview?.adjudicatorFeedback || ''}
+                onChange={(e) => setMotion({
+                  ...motion,
+                  postRoundReview: {
+                    ...motion.postRoundReview,
+                    adjudicatorFeedback: e.target.value
+                  }
+                })}
+                rows={4}
+                className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
+                placeholder="Notes from judge's feedback..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">
+                Next Improvement
+              </label>
+              <textarea
+                value={motion.postRoundReview?.nextImprovement || ''}
+                onChange={(e) => setMotion({
+                  ...motion,
+                  postRoundReview: {
+                    ...motion.postRoundReview,
+                    nextImprovement: e.target.value
+                  }
+                })}
+                rows={3}
+                className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
+                placeholder="What to improve next time..."
+              />
+            </div>
+          </div>
+        </details>
       </div>
     </form>
   )
