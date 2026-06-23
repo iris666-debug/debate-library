@@ -14,7 +14,7 @@ export default function Layout() {
             <NavItem to="/modules">Frameworks</NavItem>
             <NavItem to="/vocab">Vocabulary</NavItem>
             <NavItem to="/clash">Clash</NavItem>
-            <NavItem to="/motion-type-notes">Strategy Notes</NavItem>
+            <NavItem to="/motion-type-notes">Strategy</NavItem>
             <NavItem to="/coach">AI Coach</NavItem>
             <NavItem to="/drill">Shadowing</NavItem>
             <NavItem to="/poi">POI</NavItem>
