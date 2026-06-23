@@ -18,6 +18,7 @@ const MODES = [
   { id: 'pdf', label: 'PDF 材料提炼' },
   { id: 'microstory', label: 'Micro-story Generator' },
   { id: 'compression', label: 'Compression Suggester' },
+  { id: 'extension', label: 'Extension Generator' },
 ]
 
 export default function CoachPage() {

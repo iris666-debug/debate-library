@@ -278,6 +278,93 @@ Example output format:
 | "precautionary principle applies" | Shifts burden of proof to those proposing change, embedding risk-aversion as default |`
 }
 
+export function buildExtensionPrompt(motionText, side, openingArguments) {
+  const sideName = side === 'prop' ? 'Closing Government' : 'Closing Opposition'
+  const benchName = side === 'prop' ? 'Opening Government' : 'Opening Opposition'
+
+  return `You are a British Parliamentary debate coach. The user is preparing for ${sideName} (Closing Bench).
+
+Motion: ${motionText}
+
+Opening Bench (${benchName}) has already argued:
+${openingArguments}
+
+Your task: Generate 3 Extension directions for ${sideName}. In BP, Closing teams MUST introduce new argument dimensions that Opening did not cover.
+
+For each extension, provide:
+1. New Angle Name (English + 中文)
+2. Why This is a New Dimension (explain what Opening missed)
+3. Mechanism Chain (3-4 steps showing causal logic)
+4. Impact Landing Point (concrete consequence)
+
+Output in JSON format:
+[
+  {
+    "angle_en": "Democratic Legitimacy",
+    "angle_zh": "民主正当性",
+    "why_new": "Opening focused on economic efficiency; we extend to governance and consent",
+    "mechanism": "Policy without consultation → public distrust → electoral backlash → policy reversal",
+    "impact": "Undermines long-term stability of the entire reform agenda"
+  }
+]
+
+Only return JSON, no other text.`
+}
+
+export function buildStakeholderPrompt(motionText) {
+  return `You are a British Parliamentary debate coach. Analyze the following motion and identify all relevant stakeholders.
+
+Motion: ${motionText}
+
+Identify 5-8 stakeholder groups. For each, provide:
+1. Name (English + 中文)
+2. Why they care (one sentence)
+3. Their primary interest
+
+Output in JSON format:
+[
+  {
+    "name_en": "Small Business Owners",
+    "name_zh": "小企业主",
+    "why_care": "They face disproportionate compliance costs under the proposed regulation",
+    "interest": "Economic survival and regulatory burden reduction"
+  }
+]
+
+Only return JSON, no other text.`
+}
+
+export function buildStakeholderArgumentPrompt(motionText, stakeholder, side) {
+  const sideName = side === 'prop' ? 'supporting' : 'opposing'
+
+  return `You are a British Parliamentary debate coach. Generate an argument from a specific stakeholder's perspective.
+
+Motion: ${motionText}
+Stakeholder: ${stakeholder.name_en} (${stakeholder.name_zh})
+Stakeholder's Interest: ${stakeholder.interest}
+Side: ${sideName} the motion
+
+Generate one complete argument from this stakeholder's viewpoint, including:
+1. Claim (one sentence, English + 中文)
+2. Mechanism (3-step causal chain, English + 中文 for each step)
+3. Impact (one sentence, English + 中文)
+
+Output in JSON format:
+{
+  "claim_en": "Small businesses will be forced to close under this regulation",
+  "claim_zh": "小企业将被迫在这项监管下关闭",
+  "mechanism_points": [
+    {"text_en": "Step 1", "text_zh": "第1步"},
+    {"text_en": "Step 2", "text_zh": "第2步"},
+    {"text_en": "Step 3", "text_zh": "第3步"}
+  ],
+  "impact_en": "60% of local businesses shut down within 2 years",
+  "impact_zh": "60%的本地企业在2年内倒闭"
+}
+
+Only return JSON, no other text.`
+}
+
 export function buildTranscriptExtractPrompt(motionText, transcript) {
   return `你是一位BP辩论教练。用户提供了一场比赛的文字稿，请提取论点信息并按以下JSON格式返回（不要有任何Markdown代码块标记，直接返回JSON）：
 

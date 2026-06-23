@@ -1,0 +1,22 @@
+export const DEBATE_TERMS = [
+  { term: "Motion", zh: "辩题", definition: "The statement being debated. Always starts with 'This House...'", example: "THBT AI should be regulated" },
+  { term: "Mechanism", zh: "机制", definition: "The causal chain explaining WHY your claim leads to your impact. The most important part of any argument.", example: "Regulation → compliance costs ↑ → small firms exit → monopoly ↑" },
+  { term: "Characterization", zh: "定性", definition: "How you frame the core problem of the debate before making arguments. Sets the lens through which everything else is judged.", example: "This is fundamentally a debate about who bears the cost of progress" },
+  { term: "Status Quo", zh: "现状", definition: "The current state of affairs before the proposed change. Opp usually defends it.", example: "In the status quo, AI is self-regulated by industry" },
+  { term: "Rebuttal", zh: "反驳", definition: "Directly attacking the opponent's argument by targeting their mechanism or impact.", example: "Their mechanism fails because..." },
+  { term: "Extension", zh: "延伸论点", definition: "In BP, the Closing teams must introduce a new argument dimension not covered by Opening.", example: "While Opening focused on economic harm, we extend to democratic legitimacy" },
+  { term: "Whip", zh: "总结陈词", definition: "The final speaker in each bench (4th and 8th speaker in BP). Summarizes the debate and explains why their bench won.", example: "The Closing Government Whip" },
+  { term: "POI", zh: "短暂质询", definition: "Point of Information. A 15-second interjection offered during an opponent's speech (minutes 1-6 only).", example: "On that point — doesn't your mechanism assume perfect information?" },
+  { term: "Clash", zh: "核心矛盾", definition: "The central tension both sides are fighting over. The real question underneath the motion.", example: "Innovation vs Safety" },
+  { term: "Impact", zh: "影响/损益", definition: "Why your argument matters. The real-world consequence if your mechanism plays out.", example: "...leading to 40 million job losses by 2030" },
+  { term: "Weighing", zh: "权衡比较", definition: "Explaining to the judge WHY your impacts matter more than the opponent's. Scope, probability, irreversibility.", example: "Even if they win on efficiency, we outweigh on rights — you cannot put a price on dignity" },
+  { term: "Burden of Proof", zh: "论证责任", definition: "The obligation to prove your case. Prop must prove the motion is true; Opp must prove it should not pass.", example: "The burden lies with Prop to show regulation is necessary AND sufficient" },
+  { term: "Concession", zh: "让步", definition: "Acknowledging a point the opponent made is true, before explaining why it doesn't change the overall debate.", example: "We concede AI will displace some jobs — but so did electricity, and net employment rose" },
+  { term: "Knife", zh: "切割", definition: "Narrowing the interpretation of the motion to exclude inconvenient cases.", example: "We define 'regulate' as safety standards only, not price controls" },
+  { term: "Principled Argument", zh: "原则性论点", definition: "An argument based on rights or values rather than consequences.", example: "Regardless of outcomes, people have a right to privacy" },
+  { term: "Practical Argument", zh: "实践性论点", definition: "An argument based on real-world consequences and empirical claims.", example: "Surveillance reduces crime rates by 23% in pilot cities" },
+  { term: "Comparative World", zh: "比较世界", definition: "BP judging compares the world with the motion passed vs without. You must show YOUR world is better.", example: "In a world with this policy, vulnerable workers are protected. In theirs, race to the bottom." },
+  { term: "Bench", zh: "席位", definition: "One of the four teams in BP. Opening Government, Opening Opposition, Closing Government, Closing Opposition.", example: "The Closing Bench must extend beyond Opening" },
+  { term: "Split", zh: "分工", definition: "How two speakers on the same team divide their arguments.", example: "First speaker takes economic harms, second takes social harms" },
+  { term: "Signposting", zh: "路标语", definition: "Clearly labeling what you're about to do so judges can follow your structure.", example: "I will make three arguments. First... Second... Third..." }
+]
