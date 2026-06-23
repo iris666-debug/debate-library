@@ -73,12 +73,12 @@ export default function CoachPage() {
     try {
       if (mode === 'pdf') {
         if (!pdfInfo || pdfInfo.isEmpty) {
-          setError('请选择有效的 PDF 文件')
+          setError('Please upload a valid PDF file')
           return
         }
       } else {
         if (!selectedMotion) {
-          setError('请选择一道辩题')
+          setError('Please select a motion')
           return
         }
       }
