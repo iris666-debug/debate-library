@@ -6,6 +6,8 @@ import {
   buildWeaknessPrompt,
   buildSimilarPrompt,
   buildPdfExtractPrompt,
+  buildMicrostoryPrompt,
+  buildCompressionPrompt,
 } from '../ai/prompts'
 import { extractPdfText, MAX_PDF_CHARS } from '../ai/pdfText'
 
@@ -14,6 +16,8 @@ const MODES = [
   { id: 'weakness', label: '论点漏洞检查' },
   { id: 'similar', label: '相似辩题推荐' },
   { id: 'pdf', label: 'PDF 材料提炼' },
+  { id: 'microstory', label: 'Micro-story Generator' },
+  { id: 'compression', label: 'Compression Suggester' },
 ]
 
 export default function CoachPage() {
@@ -27,6 +31,8 @@ export default function CoachPage() {
   const [side, setSide] = useState('prop')
   const [pdfFile, setPdfFile] = useState(null)
   const [pdfInfo, setPdfInfo] = useState(null)
+  const [mechanismInput, setMechanismInput] = useState('')
+  const [textInput, setTextInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
   const [error, setError] = useState('')

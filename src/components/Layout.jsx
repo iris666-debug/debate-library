@@ -19,6 +19,15 @@ export default function Layout() {
             <NavItem to="/drill">复述</NavItem>
             <NavItem to="/poi">POI</NavItem>
             <NavItem to="/data">数据</NavItem>
+            <a
+              href="https://notebooklm.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 text-sm text-stone-600 hover:text-stone-900 transition flex items-center gap-1"
+              title="将视频/文章导入NotebookLM做结构化笔记"
+            >
+              素材 ↗
+            </a>
           </nav>
           <button
             onClick={logout}

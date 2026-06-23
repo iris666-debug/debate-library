@@ -240,6 +240,44 @@ ${knowledge}
 5. 用简体中文输出`
 }
 
+export function buildMicrostoryPrompt(mechanismChain) {
+  return `You are a British Parliamentary debate coach. The user has provided a mechanism chain (causal reasoning sequence). Generate a concrete micro-story (100 words maximum) with a specific character that illustrates this mechanism in action. This story will be used in the Impact section to help judges visualize the real-world consequences.
+
+Mechanism chain: ${mechanismChain}
+
+Requirements:
+1. Create a specific person with name, occupation, age, and location
+2. Write in vivid, concrete language that creates a scene
+3. The final sentence must explicitly state the impact
+4. Write in English only
+5. Keep it under 100 words
+6. Make it emotionally resonant but professional
+
+Example format:
+"Sarah Chen, a 45-year-old factory worker in Detroit, watches as the new AI system is installed on her assembly line. Within three months, her supervisor tells her the company is downsizing. She applies to 20 jobs but her skills are obsolete. Six months later, she can't afford her rent. This is the face of technological unemployment: not a statistic, but a person whose livelihood vanishes overnight."`
+}
+
+export function buildCompressionPrompt(verboseText) {
+  return `You are a British Parliamentary debate coach specializing in concise argumentation. The user has provided a verbose or circular expression. Provide 3 compressed alternative phrases that capture the core argument more efficiently.
+
+Original text: ${verboseText}
+
+Requirements:
+1. Provide exactly 3 compressed alternatives
+2. Each alternative should be a short phrase (3-8 words maximum)
+3. For each alternative, explain in one sentence what implicit argumentative logic it contains
+4. Format as a table with columns: "Compressed Phrase" | "Implicit Logic"
+5. Write in English
+6. The compressed phrases should be debate-ready (usable in actual speeches)
+
+Example output format:
+| Compressed Phrase | Implicit Logic |
+|---|---|
+| "market failure necessitates intervention" | Assumes markets have a natural equilibrium state and deviations justify correction |
+| "distributive injustice demands redress" | Frames inequality as a rights violation requiring active remedy, not just unfortunate outcome |
+| "precautionary principle applies" | Shifts burden of proof to those proposing change, embedding risk-aversion as default |`
+}
+
 export function buildGenerateArgumentsPrompt(motionText) {
   return `你是一位经验丰富的BP辩论教练。请为以下辩题生成完整的论点草稿。
 

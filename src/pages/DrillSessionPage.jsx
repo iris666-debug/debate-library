@@ -26,6 +26,15 @@ export default function DrillSessionPage() {
   const [phase, setPhase] = useState(IDLE)
   const [rating, setRating] = useState(null)
   const [round, setRound] = useState(0)
+  const [duration, setDuration] = useState(30)
+
+  const timeOptions = [
+    { value: 30, label: '30秒' },
+    { value: 60, label: '1分钟' },
+    { value: 120, label: '2分钟' },
+    { value: 240, label: '4分钟' },
+    { value: 420, label: '7分钟' },
+  ]
 
   useEffect(() => {
     if (!user) return
@@ -106,17 +115,39 @@ export default function DrillSessionPage() {
       </header>
 
       {phase === IDLE && (
-        <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center space-y-4">
-          <p className="text-sm text-stone-600 leading-relaxed">
-            看 Motion 准备好后点开始,30 秒口头复述论点。
+        <div className="bg-white border border-stone-200 rounded-2xl p-8 space-y-4">
+          <p className="text-sm text-stone-600 leading-relaxed text-center">
+            看 Motion 准备好后选择时长并点开始，口头复述论点。
             <br />
             倒计时结束自动展开论点对照。
           </p>
+          <div>
+            <label className="text-sm font-medium text-stone-700 mb-2 block text-center">
+              选择复述时长
+            </label>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {timeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDuration(opt.value)}
+                  className={
+                    'px-4 py-2 rounded-lg text-sm transition ' +
+                    (duration === opt.value
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             onClick={start}
-            className="px-6 py-3 rounded-lg bg-stone-900 text-white text-sm font-medium hover:bg-stone-800"
+            className="w-full px-6 py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800"
           >
-            开始 (30 秒)
+            开始复述（{timeOptions.find(o => o.value === duration)?.label}）
           </button>
         </div>
       )}
