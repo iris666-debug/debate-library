@@ -9,7 +9,7 @@ import TagInput from '../components/TagInput'
 import SpeakButton from '../components/SpeakButton'
 import ArgumentEditor from '../components/ArgumentEditor'
 import { askGemini } from '../ai/gemini'
-import { buildTranscriptExtractPrompt, buildStakeholderPrompt, buildStakeholderArgumentPrompt } from '../ai/prompts'
+import { buildTranscriptExtractPrompt, buildStakeholderPrompt, buildStakeholderArgumentPrompt, buildGenerateArgumentsPrompt } from '../ai/prompts'
 
 export default function MotionEditPage() {
   const { user } = useAuth()
@@ -34,6 +34,7 @@ export default function MotionEditPage() {
   const [stakeholders, setStakeholders] = useState(null)
   const [generatingStakeholder, setGeneratingStakeholder] = useState(false)
   const [stakeholderArgPreview, setStakeholderArgPreview] = useState({})
+  const [generatingDraft, setGeneratingDraft] = useState(false)
   const [motion, setMotion] = useState({
     text: '',
     source: '',
@@ -338,6 +339,29 @@ export default function MotionEditPage() {
     }
   }
 
+  const handleGenerateAIDraft = async () => {
+    if (!motion.text.trim()) {
+      alert('Please enter motion text first')
+      return
+    }
+
+    setGeneratingDraft(true)
+    try {
+      const prompt = buildGenerateArgumentsPrompt(motion.text)
+      const result = await askGemini(prompt)
+      const parsed = JSON.parse(result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+
+      // Set preview for transcript modal (reuse the same preview)
+      setPreviewResult(parsed)
+      setTranscriptModal(true) // Open modal to show preview
+    } catch (err) {
+      console.error('AI Draft generation error:', err)
+      alert('Failed to generate draft: ' + (err?.message || ''))
+    } finally {
+      setGeneratingDraft(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -548,6 +572,14 @@ export default function MotionEditPage() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm">Pro Arguments</h3>
             <div className="flex gap-2 text-xs">
+              <button
+                type="button"
+                onClick={handleGenerateAIDraft}
+                disabled={generatingDraft || !motion.text.trim()}
+                className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {generatingDraft ? 'Generating...' : 'AI Draft'}
+              </button>
               <button
                 type="button"
                 onClick={() => setTranscriptModal(true)}
