@@ -211,27 +211,57 @@ export default function MotionEditPage() {
   const handleConfirmTranscript = () => {
     if (!previewResult) return
 
+    // Extract coreClash
+    if (previewResult.coreClash && !motion.coreClashes?.length) {
+      setMotion(prev => ({
+        ...prev,
+        coreClashes: [previewResult.coreClash]
+      }))
+    }
+
     // Merge with existing args (don't overwrite)
     const newPropArgs = [...(motion.propArgs || [])]
     const newOppArgs = [...(motion.oppArgs || [])]
 
     previewResult.propArgs?.forEach((arg, i) => {
       if (!newPropArgs[i] || !newPropArgs[i].name_en) {
-        newPropArgs[i] = arg
+        newPropArgs[i] = {
+          name_en: arg.name_en || '',
+          name_zh: arg.name_zh || '',
+          claim_en: arg.claim_en || '',
+          claim_zh: arg.claim_zh || '',
+          mechanism_points: arg.mechanism_points || [],
+          comparative_en: arg.comparative_en || '',
+          comparative_zh: arg.comparative_zh || '',
+          impact_en: arg.impact_en || '',
+          impact_zh: arg.impact_zh || '',
+          pois: arg.pois || []
+        }
       }
     })
 
     previewResult.oppArgs?.forEach((arg, i) => {
       if (!newOppArgs[i] || !newOppArgs[i].name_en) {
-        newOppArgs[i] = arg
+        newOppArgs[i] = {
+          name_en: arg.name_en || '',
+          name_zh: arg.name_zh || '',
+          claim_en: arg.claim_en || '',
+          claim_zh: arg.claim_zh || '',
+          mechanism_points: arg.mechanism_points || [],
+          comparative_en: arg.comparative_en || '',
+          comparative_zh: arg.comparative_zh || '',
+          impact_en: arg.impact_en || '',
+          impact_zh: arg.impact_zh || '',
+          pois: arg.pois || []
+        }
       }
     })
 
-    setMotion({
-      ...motion,
+    setMotion(prev => ({
+      ...prev,
       propArgs: newPropArgs,
       oppArgs: newOppArgs
-    })
+    }))
 
     // Close modal
     setTranscriptModal(false)

@@ -375,6 +375,7 @@ ${transcript}
 
 要求输出格式：
 {
+  "coreClash": "Innovation vs Regulation (一句话概括核心矛盾)",
   "propArgs": [
     {
       "name_en": "英文论点名称",
@@ -382,22 +383,15 @@ ${transcript}
       "claim_en": "英文Claim",
       "claim_zh": "中文Claim",
       "mechanism_points": [
-        {"text_en": "Step 1", "text_zh": "第1步"},
-        {"text_en": "Step 2", "text_zh": "第2步"},
-        {"text_en": "Step 3", "text_zh": "第3步"}
+        {"text_en": "Step 1 in English", "text_zh": "第1步中文"},
+        {"text_en": "Step 2 in English", "text_zh": "第2步中文"},
+        {"text_en": "Step 3 in English", "text_zh": "第3步中文"}
       ],
-      "comparative_en": "英文Comparative",
-      "comparative_zh": "中文Comparative",
-      "impact_en": "英文Impact",
-      "impact_zh": "中文Impact",
-      "pois": [
-        {
-          "question_en": "POI question",
-          "question_zh": "POI质询",
-          "answer_en": "Answer",
-          "answer_zh": "回答"
-        }
-      ]
+      "comparative_en": "英文Comparative (why this matters more)",
+      "comparative_zh": "中文Comparative (为什么这更重要)",
+      "impact_en": "英文Impact (concrete consequence)",
+      "impact_zh": "中文Impact (具体后果)",
+      "pois": []
     }
   ],
   "oppArgs": [
@@ -406,11 +400,12 @@ ${transcript}
 }
 
 要求:
-1. 从文字稿中提取正反双方各最多3个论点
-2. Mechanism 必须拆成3个推理步骤（这是最重要的！）
-3. 如果文字稿里有POI质询及回答，也要提取
-4. 如果某些字段文字稿里没有，填空字符串
-5. 直接返回JSON，不要其他文字`
+1. 必须包含 coreClash 字段，格式如 "Innovation vs Safety"
+2. 从文字稿中提取正反双方各最多3个论点
+3. Mechanism 必须拆成3个推理步骤（这是最重要的！）
+4. comparative 和 impact 必须填写
+5. 如果某些字段文字稿里没有，填空字符串
+6. 直接返回JSON，不要其他文字`
 }
 
 export function buildGenerateArgumentsPrompt(motionText) {
