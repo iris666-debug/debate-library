@@ -35,6 +35,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<MotionListPage />} />
         <Route path="/motions/new" element={<MotionEditPage />} />
+        <Route path="/motions/:id" element={<MotionEditPage />} />
         <Route path="/motions/:id/edit" element={<MotionEditPage />} />
         <Route path="/modules" element={<ModuleListPage />} />
         <Route path="/modules/:id" element={<ModuleDetailPage />} />
