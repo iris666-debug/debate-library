@@ -164,7 +164,39 @@ export default function CoachPage() {
       </div>
 
       <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4">
-        {mode !== 'pdf' && mode !== 'microstory' && mode !== 'compression' ? (
+        {mode === 'microstory' ? (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-stone-700">
+              Enter Mechanism Chain
+            </label>
+            <textarea
+              value={mechanismInput}
+              onChange={(e) => setMechanismInput(e.target.value)}
+              placeholder="Enter your mechanism chain, e.g. AI automation → job loss → inequality"
+              rows={4}
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
+            />
+            <p className="text-xs text-stone-500">
+              AI will generate a 100-word character scenario for Impact stage
+            </p>
+          </div>
+        ) : mode === 'compression' ? (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-stone-700">
+              Enter Verbose Expression
+            </label>
+            <textarea
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Enter your verbose expression in Chinese or English"
+              rows={4}
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
+            />
+            <p className="text-xs text-stone-500">
+              AI will provide 3 compressed phrases with logic explanations
+            </p>
+          </div>
+        ) : mode !== 'pdf' ? (
           <>
             <label className="block space-y-1.5">
               <span className="text-sm font-medium">选择辩题</span>
@@ -268,7 +300,7 @@ export default function CoachPage() {
           disabled={loading}
           className="w-full px-5 py-2 rounded-lg bg-stone-900 text-white text-sm hover:bg-stone-800 disabled:opacity-50"
         >
-          {loading ? '生成中…' : '开始生成'}
+          {loading ? 'Generating...' : 'Generate'}
         </button>
       </div>
 

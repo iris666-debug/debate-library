@@ -15,10 +15,10 @@ export default function Layout() {
             <NavItem to="/vocab">Vocabulary</NavItem>
             <NavItem to="/clash">Clash</NavItem>
             <NavItem to="/motion-type-notes">Strategy Notes</NavItem>
-            <NavItem to="/coach">AI教练</NavItem>
+            <NavItem to="/coach">AI Coach</NavItem>
             <NavItem to="/drill">Shadowing</NavItem>
             <NavItem to="/poi">POI</NavItem>
-            <NavItem to="/data">数据</NavItem>
+            <NavItem to="/data">Data</NavItem>
             <a
               href="https://notebooklm.google.com"
               target="_blank"

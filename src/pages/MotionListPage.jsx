@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useUserCollection } from '../hooks/useCollection'
 import { MOTION_TYPES } from '../data/debateTaxonomy'
+import ArgumentDisplay from '../components/ArgumentDisplay'
 
 export default function MotionListPage() {
   const { items: motions, loading } = useUserCollection('motions', {
