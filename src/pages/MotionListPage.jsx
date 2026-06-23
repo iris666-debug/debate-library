@@ -17,6 +17,7 @@ export default function MotionListPage() {
   const [activeTags, setActiveTags] = useState([])
   const [activeMotionType, setActiveMotionType] = useState('')
   const [activeCoreClashes, setActiveCoreClashes] = useState([])
+  const [expandedMotionId, setExpandedMotionId] = useState(null)
 
   const moduleMap = useMemo(() => {
     const m = {}
