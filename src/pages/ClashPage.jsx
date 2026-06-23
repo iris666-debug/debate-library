@@ -149,32 +149,58 @@ export default function ClashPage() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {filteredClashes.map((clash) => {
-            const count = motions.filter((m) => {
-              const clashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
-              return clashes.includes(clash)
-            }).length
+              const count = motions.filter((m) => {
+                const clashes = m.coreClashes || (m.coreClash ? [m.coreClash] : [])
+                return clashes.includes(clash)
+              }).length
 
-            return (
-              <button
-                key={clash}
-                onClick={() => setSelectedClash(clash)}
-                className={
-                  'w-full text-left px-3 py-2 rounded-lg text-sm transition ' +
-                  (selectedClash === clash
-                    ? 'bg-stone-900 text-white'
-                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+              // 提取英文和中文名称，格式化为"English（中文）"
+              const match = clash.match(/^(.+?)（(.+?)）$/)
+              let displayName = clash
+              if (match) {
+                // 已经是"英文（中文）"或"中文（英文）"格式
+                const [, part1, part2] = match
+                const isChinese = (str) => /[一-龥]/.test(str)
+                if (isChinese(part1) && !isChinese(part2)) {
+                  // "中文（英文）" -> "English（中文）"
+                  displayName = `${part2}（${part1}）`
+                } else {
+                  // 已经是正确格式
+                  displayName = clash
                 }
-              >
-                <div className="font-medium">{clash}</div>
-                <div className={
-                  'text-xs mt-0.5 ' + (count === 0 ? 'opacity-40' : 'opacity-75')
-                }>
-                  {count === 0 ? '暂无题卡' : `${count} 道题`}
-                </div>
-              </button>
-            )
-          })}
-        </div>
+              } else {
+                // 尝试匹配"中文 (English)"格式
+                const reverseMatch = clash.match(/^(.+?)\s*\((.+?)\)$/)
+                if (reverseMatch) {
+                  const [, part1, part2] = reverseMatch
+                  const isChinese = (str) => /[一-龥]/.test(str)
+                  if (isChinese(part1) && !isChinese(part2)) {
+                    displayName = `${part2}（${part1}）`
+                  }
+                }
+              }
+
+              return (
+                <button
+                  key={clash}
+                  onClick={() => setSelectedClash(clash)}
+                  className={
+                    'w-full text-left px-3 py-2 rounded-lg text-sm transition ' +
+                    (selectedClash === clash
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+                  }
+                >
+                  <div className="font-medium">{displayName}</div>
+                  <div className={
+                    'text-xs mt-0.5 ' + (count === 0 ? 'opacity-40' : 'opacity-75')
+                  }>
+                    {count === 0 ? 'No motions' : `${count} motion${count > 1 ? 's' : ''}`}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
       </div>
 
         {/* 右侧题卡列表 */}
