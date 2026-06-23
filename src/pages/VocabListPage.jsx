@@ -6,6 +6,7 @@ import { createVocabItem, updateVocabItem, deleteVocabItem } from '../data/vocab
 import VocabFormModal from '../components/VocabFormModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import SpeakButton from '../components/SpeakButton'
+import { DEBATE_TERMS } from '../data/debateTerms'
 
 export default function VocabListPage() {
   const { user } = useAuth()
@@ -18,10 +19,12 @@ export default function VocabListPage() {
     orderDir: 'asc',
   })
 
+  const [tab, setTab] = useState('jargon')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [search, setSearch] = useState('')
+  const [jargonSearch, setJargonSearch] = useState('')
 
   const motionMap = useMemo(() => {
     const m = {}
@@ -33,20 +36,34 @@ export default function VocabListPage() {
 
   const filtered = useMemo(() => {
     if (!search.trim()) return vocab
-    const q = search.trim().toLowerCase()
-    return vocab.filter(
-      (v) =>
-        v.term_en.toLowerCase().includes(q) ||
-        (v.meaning_zh && v.meaning_zh.toLowerCase().includes(q))
-    )
+    const s = search.toLowerCase()
+    return vocab.filter((v) => {
+      const term = (v.term_en || v.term_zh || '').toLowerCase()
+      const def = (v.definition_en || v.definition_zh || '').toLowerCase()
+      return term.includes(s) || def.includes(s)
+    })
   }, [vocab, search])
 
-  const handleSave = async (data) => {
-    if (editing) {
+  const filteredJargon = useMemo(() => {
+    if (!jargonSearch.trim()) return DEBATE_TERMS
+    const s = jargonSearch.toLowerCase()
+    return DEBATE_TERMS.filter((t) => {
+      return (
+        t.term.toLowerCase().includes(s) ||
+        t.zh.toLowerCase().includes(s) ||
+        t.definition.toLowerCase().includes(s)
+      )
+    })
+  }, [jargonSearch])
+
+  const handleSubmit = async (data) => {
+    if (editing && editing.id) {
       await updateVocabItem(user.uid, editing.id, data)
     } else {
       await createVocabItem(user.uid, data)
     }
+    setModalOpen(false)
+    setEditing(null)
   }
 
   const handleDelete = async () => {
@@ -56,121 +73,173 @@ export default function VocabListPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl md:text-2xl font-semibold">
-          生词本
-          {vocab.length > 0 && (
-            <span className="ml-2 text-sm text-stone-500 font-normal">
-              {vocab.length} 个词汇
-            </span>
-          )}
-        </h1>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl font-semibold">Vocabulary</h1>
+        <p className="text-sm text-stone-500 mt-1">
+          {tab === 'jargon'
+            ? 'BP debate terminology reference'
+            : 'Your personal vocabulary bank'}
+        </p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex gap-2 border-b border-stone-200">
         <button
-          onClick={() => {
-            setEditing(null)
-            setModalOpen(true)
-          }}
-          className="px-4 py-1.5 rounded-lg bg-stone-900 text-white text-sm hover:bg-stone-800"
+          onClick={() => setTab('jargon')}
+          className={
+            'px-4 py-2 text-sm font-medium transition ' +
+            (tab === 'jargon'
+              ? 'border-b-2 border-stone-900 text-stone-900'
+              : 'text-stone-500 hover:text-stone-900')
+          }
         >
-          新增词汇
+          BP Jargon
+        </button>
+        <button
+          onClick={() => setTab('my-vocab')}
+          className={
+            'px-4 py-2 text-sm font-medium transition ' +
+            (tab === 'my-vocab'
+              ? 'border-b-2 border-stone-900 text-stone-900'
+              : 'text-stone-500 hover:text-stone-900')
+          }
+        >
+          My Vocabulary
         </button>
       </div>
 
-      {vocab.length > 0 && (
-        <input
-          type="text"
-          placeholder="搜索英文词汇或中文释义..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
-        />
-      )}
-
-      {vocab.length === 0 ? (
-        <div className="text-sm text-stone-500 bg-stone-50 border border-stone-200 rounded-lg p-6">
-          还没有词汇。辩论里的专业词汇（比如 power asymmetry、binding
-          arbitration）值得长期积累，点上方"新增词汇"开始记录。
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((v) => {
-            const linkedMotions = (v.linkedMotionIds || [])
-              .map((mid) => motionMap[mid])
-              .filter(Boolean)
-            return (
-              <div
-                key={v.id}
-                className="bg-white border border-stone-200 rounded-2xl p-4 space-y-3"
-              >
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">{v.term_en}</h3>
-                      <SpeakButton text={v.term_en} label="" />
-                    </div>
-                    {v.meaning_zh && (
-                      <p className="text-stone-600 mt-1">{v.meaning_zh}</p>
-                    )}
+      {tab === 'jargon' ? (
+        <div className="space-y-4">
+          <input
+            type="search"
+            value={jargonSearch}
+            onChange={(e) => setJargonSearch(e.target.value)}
+            placeholder="Search terms..."
+            className="w-full px-4 py-2 border border-stone-300 rounded-lg text-sm"
+          />
+          <div className="space-y-3">
+            {filteredJargon.map((term, idx) => (
+              <div key={idx} className="bg-white border border-stone-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg">{term.term}</h3>
+                    <p className="text-sm text-stone-500">{term.zh}</p>
                   </div>
+                  <SpeakButton text={term.definition + '. For example: ' + term.example} />
                 </div>
-                {v.usage_note && (
-                  <div className="bg-stone-50 rounded-lg p-3 text-sm text-stone-600">
-                    {v.usage_note}
-                  </div>
-                )}
-                {linkedMotions.length > 0 && (
-                  <div className="text-sm">
-                    <span className="text-stone-500">来自题卡: </span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {linkedMotions.map((m) => (
-                        <Link
-                          key={m.id}
-                          to={`/motions/${m.id}`}
-                          className="text-stone-700 hover:text-stone-900 underline"
-                        >
-                          {m.text}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="flex gap-2 pt-2 border-t border-stone-100">
-                  <button
-                    onClick={() => {
-                      setEditing(v)
-                      setModalOpen(true)
-                    }}
-                    className="text-sm text-stone-600 hover:text-stone-900"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    onClick={() => setDeleting(v)}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    删除
-                  </button>
+                <p className="text-sm text-stone-700">{term.definition}</p>
+                <div className="bg-stone-50 rounded-lg p-3 text-sm text-stone-600 italic">
+                  Example: {term.example}
                 </div>
               </div>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search vocabulary..."
+              className="flex-1 px-4 py-2 border border-stone-300 rounded-lg text-sm"
+            />
+            <button
+              onClick={() => {
+                setEditing(null)
+                setModalOpen(true)
+              }}
+              className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm hover:bg-stone-800"
+            >
+              + Add Word
+            </button>
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="bg-white border border-dashed border-stone-300 rounded-xl p-8 text-center">
+              <p className="text-stone-500 text-sm">
+                {vocab.length === 0
+                  ? 'No vocabulary yet. Add your first word!'
+                  : 'No matches found.'}
+              </p>
+            </div>
+          )}
+
+          <div className="grid gap-3">
+            {filtered.map((v) => {
+              const linkedMotion = v.linkedMotionId ? motionMap[v.linkedMotionId] : null
+              return (
+                <div
+                  key={v.id}
+                  className="bg-white border border-stone-200 rounded-xl p-4 space-y-2"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{v.term_en || v.term_zh}</span>
+                        {v.term_en && v.term_zh && (
+                          <span className="text-sm text-stone-500">({v.term_zh})</span>
+                        )}
+                      </div>
+                      {(v.definition_en || v.definition_zh) && (
+                        <p className="text-sm text-stone-600 mt-1">
+                          {v.definition_en || v.definition_zh}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <SpeakButton text={v.term_en || v.term_zh} />
+                      <button
+                        onClick={() => {
+                          setEditing(v)
+                          setModalOpen(true)
+                        }}
+                        className="px-2 py-1 text-xs text-stone-600 hover:text-stone-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleting(v)}
+                        className="px-2 py-1 text-xs text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  {linkedMotion && (
+                    <Link
+                      to={`/motions/${linkedMotion.id}/edit`}
+                      className="inline-block text-xs text-blue-600 hover:underline"
+                    >
+                      → {linkedMotion.text}
+                    </Link>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
       {modalOpen && (
         <VocabFormModal
-          item={editing}
+          initial={editing}
           motions={motions}
-          onSave={handleSave}
-          onClose={() => setModalOpen(false)}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setModalOpen(false)
+            setEditing(null)
+          }}
         />
       )}
 
       {deleting && (
         <ConfirmDialog
-          title="删除词汇"
-          message={`「${deleting.term_en}」将被永久删除，无法恢复。`}
+          title="Delete Vocabulary"
+          message={`Delete "${deleting.term_en || deleting.term_zh}"?`}
+          confirmText="Delete"
           onConfirm={handleDelete}
           onCancel={() => setDeleting(null)}
         />
