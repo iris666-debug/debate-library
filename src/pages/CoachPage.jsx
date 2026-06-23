@@ -383,7 +383,7 @@ export default function CoachPage() {
                 </p>
                 {pdfInfo.truncated && (
                   <p className="text-amber-700">
-                    Content truncated to first {Math.floor(MAX_PDF_CHARS / 1000)}k characters
+                    Large file detected, processing first 300k characters
                   </p>
                 )}
               </div>

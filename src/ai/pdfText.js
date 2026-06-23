@@ -3,7 +3,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
-export const MAX_PDF_CHARS = 60000
+export const MAX_PDF_CHARS = 300000
 
 export async function extractPdfText(file) {
   const arrayBuffer = await file.arrayBuffer()
