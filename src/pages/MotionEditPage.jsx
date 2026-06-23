@@ -9,7 +9,7 @@ import TagInput from '../components/TagInput'
 import SpeakButton from '../components/SpeakButton'
 import ArgumentEditor from '../components/ArgumentEditor'
 import { askGemini } from '../ai/gemini'
-import { buildTranscriptExtractPrompt } from '../ai/prompts'
+import { buildTranscriptExtractPrompt, buildStakeholderPrompt, buildStakeholderArgumentPrompt } from '../ai/prompts'
 
 export default function MotionEditPage() {
   const { user } = useAuth()
@@ -31,6 +31,9 @@ export default function MotionEditPage() {
   const [transcript, setTranscript] = useState('')
   const [generating, setGenerating] = useState(false)
   const [previewResult, setPreviewResult] = useState(null)
+  const [stakeholders, setStakeholders] = useState(null)
+  const [generatingStakeholder, setGeneratingStakeholder] = useState(false)
+  const [stakeholderArgPreview, setStakeholderArgPreview] = useState({})
   const [motion, setMotion] = useState({
     text: '',
     source: '',
