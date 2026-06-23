@@ -317,7 +317,7 @@ export default function MotionEditPage() {
             onChange={(e) => setMotion({ ...motion, characterization: e.target.value })}
             rows={3}
             className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
-            placeholder="Background and framing..."
+            placeholder="Background and framing of the debate..."
           />
         </div>
 

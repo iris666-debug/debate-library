@@ -93,16 +93,16 @@ export default function MotionListPage() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search motion text or source..."
+            placeholder="Search motion text..."
             className="flex-1 px-4 py-2 border border-stone-300 rounded-lg text-sm"
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-stone-300 rounded-lg text-sm"
+            className="px-3 py-2 border border-stone-300 rounded-lg text-sm min-w-[140px]"
           >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
             <option value="a-z">A-Z</option>
           </select>
         </div>
