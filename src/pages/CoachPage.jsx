@@ -164,7 +164,7 @@ export default function CoachPage() {
       </div>
 
       <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4">
-        {mode !== 'pdf' ? (
+        {mode !== 'pdf' && mode !== 'microstory' && mode !== 'compression' ? (
           <>
             <label className="block space-y-1.5">
               <span className="text-sm font-medium">选择辩题</span>

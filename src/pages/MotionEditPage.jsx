@@ -379,7 +379,7 @@ export default function MotionEditPage() {
             className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title={!motion.text.trim() ? '请先填写辩题' : ''}
           >
-            {generatingSide.prop ? '生成中…' : 'AI 生成草稿'}
+            {generatingSide.prop ? 'Generating...' : 'AI 生成草稿'}
           </button>
           {generatingSide.prop && (
             <span className="text-xs text-stone-500">正在生成正方论点...</span>
@@ -405,7 +405,7 @@ export default function MotionEditPage() {
             className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title={!motion.text.trim() ? '请先填写辩题' : ''}
           >
-            {generatingSide.opp ? '生成中…' : 'AI 生成草稿'}
+            {generatingSide.opp ? 'Generating...' : 'AI 生成草稿'}
           </button>
           {generatingSide.opp && (
             <span className="text-xs text-stone-500">正在生成反方论点...</span>

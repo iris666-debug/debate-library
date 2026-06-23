@@ -14,7 +14,7 @@ export default function Layout() {
             <NavItem to="/modules">模块</NavItem>
             <NavItem to="/vocab">词汇</NavItem>
             <NavItem to="/clash">Clash</NavItem>
-            <NavItem to="/motion-type-notes">打法笔记</NavItem>
+            <NavItem to="/motion-type-notes">Strategy Notes</NavItem>
             <NavItem to="/coach">AI教练</NavItem>
             <NavItem to="/drill">复述</NavItem>
             <NavItem to="/poi">POI</NavItem>
