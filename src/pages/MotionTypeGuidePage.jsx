@@ -64,7 +64,7 @@ export default function MotionTypeGuidePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Motion Type</h1>
+        <h1 className="text-2xl font-semibold">Notes</h1>
         <p className="text-xs text-stone-500">
           针对每种 Motion 句式积累打法心得，自己编辑、长期沉淀
         </p>

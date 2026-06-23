@@ -225,10 +225,10 @@ export default function VocabListPage() {
 
       {modalOpen && (
         <VocabFormModal
-          initial={editing}
+          item={editing}
           motions={motions}
-          onSubmit={handleSubmit}
-          onCancel={() => {
+          onSave={handleSubmit}
+          onClose={() => {
             setModalOpen(false)
             setEditing(null)
           }}
