@@ -12,13 +12,15 @@ import {
 import { extractPdfText, MAX_PDF_CHARS } from '../ai/pdfText'
 
 const MODES = [
-  { id: 'poi', label: 'POI 模拟质询' },
-  { id: 'weakness', label: '论点漏洞检查' },
-  { id: 'similar', label: '相似辩题推荐' },
-  { id: 'pdf', label: 'PDF 材料提炼' },
-  { id: 'microstory', label: 'Micro-story Generator' },
-  { id: 'compression', label: 'Compression Suggester' },
-  { id: 'extension', label: 'Extension Generator' },
+  // Prepare
+  { id: 'weakness', label: 'Argument Weakness Check', category: 'prepare' },
+  { id: 'similar', label: 'Similar Motions', category: 'prepare' },
+  { id: 'extension', label: 'Extension Generator', category: 'prepare' },
+  { id: 'pdf', label: 'PDF Extraction', category: 'prepare' },
+  // Train
+  { id: 'poi', label: 'POI Simulation', category: 'train' },
+  { id: 'microstory', label: 'Micro-story Generator', category: 'train' },
+  { id: 'compression', label: 'Compression Suggester', category: 'train' },
 ]
 
 export default function CoachPage() {
@@ -27,13 +29,14 @@ export default function CoachPage() {
     orderDir: 'desc',
   })
 
-  const [mode, setMode] = useState('poi')
+  const [mode, setMode] = useState('weakness')
   const [selectedMotionId, setSelectedMotionId] = useState('')
   const [side, setSide] = useState('prop')
   const [pdfFile, setPdfFile] = useState(null)
   const [pdfInfo, setPdfInfo] = useState(null)
   const [mechanismInput, setMechanismInput] = useState('')
   const [textInput, setTextInput] = useState('')
+  const [openingArguments, setOpeningArguments] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
   const [error, setError] = useState('')
@@ -141,27 +144,56 @@ export default function CoachPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">AI 教练</h1>
+      <h1 className="text-2xl font-semibold">AI Coach</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {MODES.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => {
-              setMode(m.id)
-              setResult('')
-              setError('')
-            }}
-            className={
-              'px-4 py-2 rounded-lg text-sm transition ' +
-              (mode === m.id
-                ? 'bg-stone-900 text-white'
-                : 'bg-white border border-stone-300 hover:bg-stone-100')
-            }
-          >
-            {m.label}
-          </button>
-        ))}
+      {/* Prepare Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-stone-600 mb-2">Prepare</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {MODES.filter(m => m.category === 'prepare').map((m) => (
+            <button
+              key={m.id}
+              onClick={() => {
+                setMode(m.id)
+                setResult('')
+                setError('')
+              }}
+              className={
+                'px-4 py-2 rounded-lg text-sm transition ' +
+                (mode === m.id
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-white border border-stone-300 hover:bg-stone-100')
+              }
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Train Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-stone-600 mb-2">Train</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {MODES.filter(m => m.category === 'train').map((m) => (
+            <button
+              key={m.id}
+              onClick={() => {
+                setMode(m.id)
+                setResult('')
+                setError('')
+              }}
+              className={
+                'px-4 py-2 rounded-lg text-sm transition ' +
+                (mode === m.id
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-white border border-stone-300 hover:bg-stone-100')
+              }
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4">
@@ -197,6 +229,66 @@ export default function CoachPage() {
               AI will provide 3 compressed phrases with logic explanations
             </p>
           </div>
+        ) : mode === 'extension' ? (
+          <>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Select Motion</span>
+              <select
+                value={selectedMotionId}
+                onChange={(e) => setSelectedMotionId(e.target.value)}
+                className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
+              >
+                <option value="">Select a motion...</option>
+                {motions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.text}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <span className="text-sm font-medium text-stone-700 block mb-2">Your Side</span>
+              <div className="inline-flex rounded-lg border border-stone-300 overflow-hidden">
+                <button
+                  onClick={() => setSide('prop')}
+                  className={
+                    'px-4 py-1.5 text-sm transition ' +
+                    (side === 'prop'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-white text-stone-600 hover:bg-stone-50')
+                  }
+                >
+                  Prop
+                </button>
+                <button
+                  onClick={() => setSide('opp')}
+                  className={
+                    'px-4 py-1.5 text-sm transition ' +
+                    (side === 'opp'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-white text-stone-600 hover:bg-stone-50')
+                  }
+                >
+                  Opp
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-stone-700">
+                What did Opening already argue?
+              </label>
+              <textarea
+                value={openingArguments}
+                onChange={(e) => setOpeningArguments(e.target.value)}
+                placeholder="Summarize Opening's main arguments..."
+                rows={4}
+                className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
+              />
+              <p className="text-xs text-stone-500">
+                AI will generate 3 Extension directions for Closing Bench
+              </p>
+            </div>
+          </>
         ) : mode !== 'pdf' ? (
           <>
             <label className="block space-y-1.5">
