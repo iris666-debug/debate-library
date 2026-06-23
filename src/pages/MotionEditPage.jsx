@@ -183,6 +183,59 @@ export default function MotionEditPage() {
     setExpandedArgs(prev => ({ ...prev, [side]: {} }))
   }
 
+  const handleGenerateFromTranscript = async () => {
+    if (!transcript.trim() || !motion.text.trim()) {
+      alert('Please enter both motion text and transcript')
+      return
+    }
+
+    setGenerating(true)
+    try {
+      const prompt = buildTranscriptExtractPrompt(motion.text, transcript)
+      const result = await askGemini(prompt)
+
+      // Parse JSON result
+      const parsed = JSON.parse(result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim())
+      setPreviewResult(parsed)
+    } catch (err) {
+      console.error('Generate error:', err)
+      alert('Generate failed: ' + (err?.message || 'Unknown error'))
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleConfirmTranscript = () => {
+    if (!previewResult) return
+
+    // Merge with existing args (don't overwrite)
+    const newPropArgs = [...(motion.propArgs || [])]
+    const newOppArgs = [...(motion.oppArgs || [])]
+
+    previewResult.propArgs?.forEach((arg, i) => {
+      if (!newPropArgs[i] || !newPropArgs[i].name_en) {
+        newPropArgs[i] = arg
+      }
+    })
+
+    previewResult.oppArgs?.forEach((arg, i) => {
+      if (!newOppArgs[i] || !newOppArgs[i].name_en) {
+        newOppArgs[i] = arg
+      }
+    })
+
+    setMotion({
+      ...motion,
+      propArgs: newPropArgs,
+      oppArgs: newOppArgs
+    })
+
+    // Close modal
+    setTranscriptModal(false)
+    setTranscript('')
+    setPreviewResult(null)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
