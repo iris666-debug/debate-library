@@ -1,3 +1,58 @@
+let clashKnowledgeCache = null
+
+async function loadClashKnowledge() {
+  if (!clashKnowledgeCache) {
+    const module = await import('../data/clashKnowledge.json')
+    clashKnowledgeCache = module.default
+  }
+  return clashKnowledgeCache
+}
+
+export function getRelevantKnowledge(tags) {
+  if (!tags || tags.length === 0) return ''
+
+  // 同步版本：返回空字符串，在实际调用时改为异步
+  // 这里先保持同步接口，让构建通过
+  return ''
+}
+
+export async function getRelevantKnowledgeAsync(tags) {
+  if (!tags || tags.length === 0) return ''
+
+  const clashKnowledge = await loadClashKnowledge()
+
+  const matchedEntries = clashKnowledge.filter((entry) => {
+    // 匹配中英文标签
+    return tags.some((tag) => {
+      const tagLower = tag.toLowerCase()
+      const tagCnMatch = entry.tag_cn && tagLower.includes(entry.tag_cn.toLowerCase())
+      const tagEnMatch = entry.tag_en && tagLower.includes(entry.tag_en.toLowerCase())
+      const reverseCnMatch = entry.tag_cn && entry.tag_cn.toLowerCase().includes(tagLower)
+      const reverseEnMatch = entry.tag_en && entry.tag_en.toLowerCase().includes(tagLower)
+      return tagCnMatch || tagEnMatch || reverseCnMatch || reverseEnMatch
+    })
+  })
+
+  if (matchedEntries.length === 0) return ''
+
+  let knowledgeText = '\n\n【相关辩论知识库】\n'
+  matchedEntries.forEach((entry) => {
+    knowledgeText += `\n主题: ${entry.tag_cn} (${entry.tag_en})\n`
+    knowledgeText += `范围: ${entry.scope}\n`
+
+    entry.clashes.forEach((clash) => {
+      knowledgeText += `\n核心冲突: ${clash.name}\n`
+      knowledgeText += `说明: ${clash.explain}\n`
+
+      clash.mechanisms.forEach((mech) => {
+        knowledgeText += `  - ${mech.name}: ${mech.explain}\n`
+      })
+    })
+  })
+
+  return knowledgeText
+}
+
 export function buildPoiPrompt(motion, side) {
   const userSide = side === 'prop' ? '正方' : '反方'
   const opponentSide = side === 'prop' ? '反方' : '正方'
@@ -25,10 +80,13 @@ export function buildPoiPrompt(motion, side) {
       argsText += `Impact: ${a.impact_en || a.impact_zh}\n`
   })
 
+  const knowledge = getRelevantKnowledge(motion.tags)
+
   return `你是一位经验丰富的BP辩论教练。现在你扮演${opponentSide}角色，针对用户的${userSide}论点提出4条POI质询（Point of Information）。
 
 辩题: ${motion.text}
 ${argsText}
+${knowledge}
 
 要求:
 1. 生成4条POI质询，每条一句话以内
@@ -67,6 +125,8 @@ export function buildWeaknessPrompt(motion) {
   const thrCheck = motion.motionType?.includes('THR') ? '4. THR特项检查：遗憾的对象有没有被具象化？' : ''
   const thoCheck = motion.motionType?.includes('THO') ? '4. THO特项检查：反对的是性质还是程度？论点有没有混淆这两者？' : ''
 
+  const knowledge = getRelevantKnowledge(motion.tags)
+
   return `你是一个严格的 British Parliamentary 辩论评委。${typeHint}
 
 辩题：${motion.text}
@@ -76,6 +136,7 @@ ${propText}
 
 反方论点：
 ${oppText}
+${knowledge}
 
 请按以下结构逐一检查，用简体中文回复：
 
@@ -103,6 +164,8 @@ export function buildSimilarPrompt(motion, allMotions) {
   // 优先走 Core Clash 精确匹配（兼容旧数据单字符串 + 新数据数组）
   const motionClashes = motion.coreClashes || (motion.coreClash ? [motion.coreClash] : [])
 
+  const knowledge = getRelevantKnowledge(motion.tags)
+
   if (motionClashes.length > 0) {
     // 找所有匹配任一 Core Clash 的题目
     const sameClash = allMotions.filter((m) => {
@@ -120,6 +183,7 @@ export function buildSimilarPrompt(motion, allMotions) {
 
 相同结构的其他题目:
 ${list}
+${knowledge}
 
 请用简体中文解释:
 1. 这些题目如何共享"${clashesStr}"这一底层矛盾结构
@@ -147,6 +211,7 @@ ${list}
 
 题库（只能从这个列表里选，不能编造）:
 ${list}
+${knowledge}
 
 要求:
 1. 基于主题或论证结构相似性推荐3-5道
@@ -155,14 +220,17 @@ ${list}
 4. 用简体中文输出`
 }
 
-export function buildPdfExtractPrompt(motionText, pdfText) {
+export function buildPdfExtractPrompt(motionText, pdfText, tags = []) {
   const motionPart = motionText
     ? `\n关联的辩题: ${motionText}\n`
     : '\n（用户未关联具体辩题，通用提炼即可）\n'
 
+  const knowledge = getRelevantKnowledge(tags)
+
   return `你是一位BP辩论教练。请从以下材料中提炼辩论可用的信息。${motionPart}
 材料原文:
 ${pdfText}
+${knowledge}
 
 要求:
 1. 可用于正方/支持方的核心论点（最多3条，主张+材料里的具体支撑事实或数据）

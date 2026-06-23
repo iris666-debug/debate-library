@@ -84,7 +84,8 @@ export default function CoachPage() {
         prompt = buildSimilarPrompt(selectedMotion, motions)
       } else if (mode === 'pdf') {
         const motionText = selectedMotion?.text || ''
-        prompt = buildPdfExtractPrompt(motionText, pdfInfo.text)
+        const motionTags = selectedMotion?.tags || []
+        prompt = buildPdfExtractPrompt(motionText, pdfInfo.text, motionTags)
       }
 
       const answer = await askGemini(prompt)
