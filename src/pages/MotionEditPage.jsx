@@ -162,13 +162,20 @@ export default function MotionEditPage() {
 
       const data = JSON.parse(jsonStr)
 
-      // 填入对应侧论点（保留 name_en/zh 和 pois 字段，补充空的 mechanism_points）
+      // 填入对应侧论点（确保所有字段都存在）
       const enrichedArgs = data.map((arg) => ({
-        name_en: '',
-        name_zh: '',
-        ...arg,
-        mechanism_points: [],
-        pois: [],
+        name_en: arg.name_en || '',
+        name_zh: arg.name_zh || '',
+        claim_en: arg.claim_en || '',
+        claim_zh: arg.claim_zh || '',
+        mechanism_en: '',
+        mechanism_zh: '',
+        mechanism_points: arg.mechanism_points || [],
+        comparative_en: arg.comparative_en || '',
+        comparative_zh: arg.comparative_zh || '',
+        impact_en: arg.impact_en || '',
+        impact_zh: arg.impact_zh || '',
+        pois: arg.pois || [],
       }))
 
       if (side === 'prop') {

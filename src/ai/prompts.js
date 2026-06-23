@@ -285,22 +285,43 @@ export function buildGenerateSideArgumentsPrompt(motionText, motionType, side) {
   return `你是一个 British Parliamentary 辩论教练。${typeHint}这道题是：${motionText}
 
 请为【${sideName}】生成3个独立论点，每个论点包含：
-1. Claim（一句话主张）
-2. Mechanism（因果机制，1-2句）
-3. Comparative（比较基准，1句）
-4. Impact（影响，1句）
+1. 论点名称（Argument Name）- 英文和中文各一个简短标题
+2. Claim（一句话主张）- 英文和中文
+3. Mechanism（因果机制，拆成3个推理步骤）- 每步英文和中文
+4. Comparative（比较基准，1句）- 英文和中文
+5. Impact（影响，1句）- 英文和中文
+6. POI 质询（2条可能遇到的质询及答案）- 英文和中文
 
 用JSON格式返回，结构为：
 [
   {
+    "name_en": "Economic Efficiency",
+    "name_zh": "经济效率",
     "claim_en": "英文Claim",
     "claim_zh": "中文Claim",
-    "mechanism_en": "英文Mechanism",
-    "mechanism_zh": "中文Mechanism",
+    "mechanism_points": [
+      {"text_en": "Step 1 in English", "text_zh": "第1步中文"},
+      {"text_en": "Step 2 in English", "text_zh": "第2步中文"},
+      {"text_en": "Step 3 in English", "text_zh": "第3步中文"}
+    ],
     "comparative_en": "英文Comparative",
     "comparative_zh": "中文Comparative",
     "impact_en": "英文Impact",
-    "impact_zh": "中文Impact"
+    "impact_zh": "中文Impact",
+    "pois": [
+      {
+        "question_en": "What if the government lacks resources?",
+        "question_zh": "如果政府缺乏资源怎么办？",
+        "answer_en": "We argue that...",
+        "answer_zh": "我们认为..."
+      },
+      {
+        "question_en": "Another POI question",
+        "question_zh": "另一个质询",
+        "answer_en": "Answer",
+        "answer_zh": "回答"
+      }
+    ]
   }
 ]
 

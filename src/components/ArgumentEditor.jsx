@@ -2,12 +2,6 @@ import BilingualField from './BilingualField'
 import MechanismEditor from './MechanismEditor'
 import PoiEditor from './PoiEditor'
 
-const FIELDS = [
-  { key: 'claim', label: 'Claim 论点' },
-  { key: 'comparative', label: 'Comparative 比较' },
-  { key: 'impact', label: 'Impact 影响' },
-]
-
 export default function ArgumentEditor({ index, side, value, onChange }) {
   const update = (field, lang, v) => {
     onChange({ ...value, [`${field}_${lang}`]: v })
@@ -27,21 +21,34 @@ export default function ArgumentEditor({ index, side, value, onChange }) {
           onEnChange={(v) => update('name', 'en', v)}
           onZhChange={(v) => update('name', 'zh', v)}
         />
-        {FIELDS.map((f) => (
-          <BilingualField
-            key={f.key}
-            label={f.label}
-            en={value[`${f.key}_en`] || ''}
-            zh={value[`${f.key}_zh`] || ''}
-            onEnChange={(v) => update(f.key, 'en', v)}
-            onZhChange={(v) => update(f.key, 'zh', v)}
-            multiline
-          />
-        ))}
+        <BilingualField
+          label="Claim 论点"
+          en={value.claim_en || ''}
+          zh={value.claim_zh || ''}
+          onEnChange={(v) => update('claim', 'en', v)}
+          onZhChange={(v) => update('claim', 'zh', v)}
+          multiline
+        />
         <div>
           <div className="text-sm font-medium text-stone-700 mb-2">Mechanism 机制（拆步骤）</div>
           <MechanismEditor value={value} onChange={onChange} />
         </div>
+        <BilingualField
+          label="Comparative 比较"
+          en={value.comparative_en || ''}
+          zh={value.comparative_zh || ''}
+          onEnChange={(v) => update('comparative', 'en', v)}
+          onZhChange={(v) => update('comparative', 'zh', v)}
+          multiline
+        />
+        <BilingualField
+          label="Impact 影响"
+          en={value.impact_en || ''}
+          zh={value.impact_zh || ''}
+          onEnChange={(v) => update('impact', 'en', v)}
+          onZhChange={(v) => update('impact', 'zh', v)}
+          multiline
+        />
         <PoiEditor pois={value.pois || []} onChange={updatePois} />
       </div>
     </div>
