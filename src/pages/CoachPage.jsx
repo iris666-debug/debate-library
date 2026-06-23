@@ -292,13 +292,13 @@ export default function CoachPage() {
         ) : mode !== 'pdf' ? (
           <>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium">选择辩题</span>
+              <span className="text-sm font-medium">Select Motion</span>
               <select
                 value={selectedMotionId}
                 onChange={(e) => setSelectedMotionId(e.target.value)}
                 className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
               >
-                <option value="">-- 请选择 --</option>
+                <option value="">Select a motion...</option>
                 {motions.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.text}
@@ -307,39 +307,42 @@ export default function CoachPage() {
               </select>
             </label>
             {mode === 'poi' && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSide('prop')}
-                  className={
-                    'flex-1 px-4 py-2 rounded-lg text-sm transition ' +
-                    (side === 'prop'
-                      ? 'bg-stone-900 text-white'
-                      : 'bg-stone-100 hover:bg-stone-200')
-                  }
-                >
-                  我是正方
-                </button>
-                <button
-                  onClick={() => setSide('opp')}
-                  className={
-                    'flex-1 px-4 py-2 rounded-lg text-sm transition ' +
-                    (side === 'opp'
-                      ? 'bg-stone-900 text-white'
-                      : 'bg-stone-100 hover:bg-stone-200')
-                  }
-                >
-                  我是反方
-                </button>
+              <div>
+                <span className="text-sm font-medium text-stone-700 block mb-2">Your Side</span>
+                <div className="inline-flex rounded-lg border border-stone-300 overflow-hidden">
+                  <button
+                    onClick={() => setSide('prop')}
+                    className={
+                      'px-4 py-1.5 text-sm transition ' +
+                      (side === 'prop'
+                        ? 'bg-stone-900 text-white'
+                        : 'bg-white text-stone-600 hover:bg-stone-50')
+                    }
+                  >
+                    Prop
+                  </button>
+                  <button
+                    onClick={() => setSide('opp')}
+                    className={
+                      'px-4 py-1.5 text-sm transition ' +
+                      (side === 'opp'
+                        ? 'bg-stone-900 text-white'
+                        : 'bg-white text-stone-600 hover:bg-stone-50')
+                    }
+                  >
+                    Opp
+                  </button>
+                </div>
               </div>
             )}
             {mode === 'similar' && selectedMotion && !selectedMotion.coreClash && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                当前题卡未标记 Core Clash，推荐结果可能不够精准。{' '}
+                This motion has no Core Clash tagged. Results may be less accurate.{' '}
                 <a
                   href={`/motions/${selectedMotionId}/edit`}
                   className="underline"
                 >
-                  去编辑页补充 Core Clash
+                  Add Core Clash
                 </a>
               </div>
             )}
