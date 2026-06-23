@@ -10,13 +10,13 @@ export default function Layout() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="font-semibold tracking-tight">辩题库</Link>
           <nav className="flex items-center gap-1 text-sm">
-            <NavItem to="/">题卡</NavItem>
-            <NavItem to="/modules">模块</NavItem>
-            <NavItem to="/vocab">词汇</NavItem>
+            <NavItem to="/">Motions</NavItem>
+            <NavItem to="/modules">Frameworks</NavItem>
+            <NavItem to="/vocab">Vocabulary</NavItem>
             <NavItem to="/clash">Clash</NavItem>
             <NavItem to="/motion-type-notes">Strategy Notes</NavItem>
             <NavItem to="/coach">AI教练</NavItem>
-            <NavItem to="/drill">复述</NavItem>
+            <NavItem to="/drill">Shadowing</NavItem>
             <NavItem to="/poi">POI</NavItem>
             <NavItem to="/data">数据</NavItem>
             <a

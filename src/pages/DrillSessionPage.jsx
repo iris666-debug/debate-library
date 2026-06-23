@@ -117,13 +117,13 @@ export default function DrillSessionPage() {
       {phase === IDLE && (
         <div className="bg-white border border-stone-200 rounded-2xl p-8 space-y-4">
           <p className="text-sm text-stone-600 leading-relaxed text-center">
-            看 Motion 准备好后选择时长并点开始，口头复述论点。
+            Read the motion, select duration, and start shadowing.
             <br />
-            倒计时结束自动展开论点对照。
+            Timer will auto-reveal arguments when complete.
           </p>
           <div>
             <label className="text-sm font-medium text-stone-700 mb-2 block text-center">
-              选择复述时长
+              Select Duration
             </label>
             <div className="flex gap-2 justify-center flex-wrap">
               {timeOptions.map((opt) => (
@@ -147,7 +147,7 @@ export default function DrillSessionPage() {
             onClick={start}
             className="w-full px-6 py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800"
           >
-            开始复述（{timeOptions.find(o => o.value === duration)?.label}）
+            Start Shadowing ({timeOptions.find(o => o.value === duration)?.label})
           </button>
         </div>
       )}
