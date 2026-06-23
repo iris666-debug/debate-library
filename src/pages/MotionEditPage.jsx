@@ -702,6 +702,126 @@ export default function MotionEditPage() {
           </div>
         </details>
       </div>
+
+      {/* Transcript Modal */}
+      {transcriptModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="text-lg font-semibold mb-4">Generate from Script</h2>
+
+            {!previewResult ? (
+              <>
+                <p className="text-sm text-stone-600 mb-4">
+                  Paste your debate transcript below. AI will extract arguments for both sides.
+                </p>
+                <textarea
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                  rows={12}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
+                  placeholder="Paste transcript here..."
+                />
+                <div className="flex gap-3 justify-end mt-4">
+                  <button
+                    type="button"
+                    onClick={() => { setTranscriptModal(false); setTranscript('') }}
+                    className="px-4 py-2 text-sm border border-stone-300 rounded-lg hover:bg-stone-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateFromTranscript}
+                    disabled={generating || !transcript.trim()}
+                    className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {generating ? 'Generating...' : 'Generate'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-stone-600 mb-4">
+                  Preview extracted arguments. Click Confirm to add them.
+                </p>
+
+                {/* Core Clash */}
+                {previewResult.coreClash && (
+                  <div className="mb-4 p-3 bg-amber-50 rounded-lg">
+                    <h3 className="font-semibold text-sm mb-1">Core Clash:</h3>
+                    <p className="text-sm">{previewResult.coreClash}</p>
+                  </div>
+                )}
+
+                <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
+                  {previewResult.propArgs?.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">Pro Arguments:</h3>
+                      {previewResult.propArgs.map((arg, i) => (
+                        <div key={i} className="bg-stone-50 p-3 rounded-lg mb-2 text-sm space-y-1">
+                          <p className="font-medium">{arg.name_en} / {arg.name_zh}</p>
+                          <p className="text-xs"><strong>Claim:</strong> {arg.claim_en}</p>
+                          {arg.mechanism_points?.length > 0 && (
+                            <div className="text-xs">
+                              <strong>Mechanism:</strong>
+                              <ul className="list-disc list-inside ml-2">
+                                {arg.mechanism_points.map((p, j) => (
+                                  <li key={j}>{p.text_en}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {arg.comparative_en && <p className="text-xs"><strong>Comparative:</strong> {arg.comparative_en}</p>}
+                          {arg.impact_en && <p className="text-xs"><strong>Impact:</strong> {arg.impact_en}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {previewResult.oppArgs?.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">Con Arguments:</h3>
+                      {previewResult.oppArgs.map((arg, i) => (
+                        <div key={i} className="bg-stone-50 p-3 rounded-lg mb-2 text-sm space-y-1">
+                          <p className="font-medium">{arg.name_en} / {arg.name_zh}</p>
+                          <p className="text-xs"><strong>Claim:</strong> {arg.claim_en}</p>
+                          {arg.mechanism_points?.length > 0 && (
+                            <div className="text-xs">
+                              <strong>Mechanism:</strong>
+                              <ul className="list-disc list-inside ml-2">
+                                {arg.mechanism_points.map((p, j) => (
+                                  <li key={j}>{p.text_en}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {arg.comparative_en && <p className="text-xs"><strong>Comparative:</strong> {arg.comparative_en}</p>}
+                          {arg.impact_en && <p className="text-xs"><strong>Impact:</strong> {arg.impact_en}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => { setTranscriptModal(false); setTranscript(''); setPreviewResult(null) }}
+                    className="px-4 py-2 text-sm border border-stone-300 rounded-lg hover:bg-stone-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmTranscript}
+                    className="px-4 py-2 text-sm bg-stone-900 text-white rounded-lg hover:bg-stone-800"
+                  >
+                    Confirm & Add
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </form>
   )
 }
