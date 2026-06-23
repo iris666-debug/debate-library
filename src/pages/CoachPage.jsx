@@ -57,10 +57,10 @@ export default function CoachPage() {
       const info = await extractPdfText(file)
       setPdfInfo(info)
       if (info.isEmpty) {
-        setError('PDF 可能是扫描图片版，暂不支持文字提取')
+        setError('PDF appears to be a scanned image. Text extraction not supported.')
       }
     } catch (err) {
-      setError(err?.message || 'PDF 解析失败')
+      setError(err?.message || 'PDF parsing failed')
     } finally {
       setLoading(false)
     }
@@ -101,7 +101,7 @@ export default function CoachPage() {
       const answer = await askGemini(prompt)
       setResult(answer)
     } catch (err) {
-      setError(err?.message || '生成失败')
+      setError(err?.message || 'Generation failed')
     } finally {
       setLoading(false)
     }
@@ -110,12 +110,12 @@ export default function CoachPage() {
   if (!isGeminiConfigured) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">AI 教练</h1>
+        <h1 className="text-2xl font-semibold">AI Coach</h1>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-4">
-          <h2 className="font-semibold text-amber-900">需要配置 Gemini API Key</h2>
+          <h2 className="font-semibold text-amber-900">Gemini API Key Required</h2>
           <ol className="text-sm text-amber-800 space-y-2 list-decimal list-inside">
             <li>
-              访问{' '}
+              Visit{' '}
               <a
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
@@ -124,17 +124,16 @@ export default function CoachPage() {
               >
                 https://aistudio.google.com/apikey
               </a>{' '}
-              免费申请 API Key
+              to get a free API Key
             </li>
             <li>
-              在项目根目录创建 <code className="bg-amber-100 px-1">.env.local</code>{' '}
-              文件（如果没有）
+              Create <code className="bg-amber-100 px-1">.env.local</code> in the project root (if not exists)
             </li>
             <li>
-              写入 <code className="bg-amber-100 px-1">VITE_GEMINI_API_KEY=你的key</code>
+              Add <code className="bg-amber-100 px-1">VITE_GEMINI_API_KEY=your_key</code>
             </li>
             <li>
-              重启开发服务器 <code className="bg-amber-100 px-1">npm run dev</code>
+              Restart dev server with <code className="bg-amber-100 px-1">npm run dev</code>
             </li>
           </ol>
         </div>
@@ -375,16 +374,16 @@ export default function CoachPage() {
               />
             </label>
             {loading && !result && (
-              <p className="text-sm text-stone-500">正在读取 PDF 文字…</p>
+              <p className="text-sm text-stone-500">Reading PDF text...</p>
             )}
             {pdfInfo && (
               <div className="text-sm text-stone-600 space-y-1">
                 <p>
-                  文件: {pdfFile?.name} ({pdfInfo.pageCount} 页)
+                  File: {pdfFile?.name} ({pdfInfo.pageCount} pages)
                 </p>
                 {pdfInfo.truncated && (
                   <p className="text-amber-700">
-                    内容较长，只取前 {Math.floor(MAX_PDF_CHARS / 1000)}k 字
+                    Content truncated to first {Math.floor(MAX_PDF_CHARS / 1000)}k characters
                   </p>
                 )}
               </div>
