@@ -12,7 +12,7 @@ import {
 import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import { askGemini } from '../ai/gemini'
 import { buildGenerateSideArgumentsPrompt, buildTranscriptExtractPrompt } from '../ai/prompts'
-import TagInput from '../components/TagInput'
+import SpeakButton from '../components/SpeakButton'
 import ArgumentEditor from '../components/ArgumentEditor'
 import ModuleMultiSelect from '../components/ModuleMultiSelect'
 import ConfirmDialog from '../components/ConfirmDialog'

@@ -16,6 +16,7 @@ export default function MotionListPage() {
   const [search, setSearch] = useState('')
   const [activeTags, setActiveTags] = useState([])
   const [activeMotionType, setActiveMotionType] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
 
   const moduleMap = useMemo(() => {
     const m = {}
@@ -32,7 +33,7 @@ export default function MotionListPage() {
   }, [motions])
 
   const filtered = useMemo(() => {
-    return motions.filter((m) => {
+    let result = motions.filter((m) => {
       if (search.trim()) {
         const s = search.toLowerCase()
         const text = (m.text || '').toLowerCase()
@@ -46,7 +47,18 @@ export default function MotionListPage() {
       if (activeMotionType && m.motionType !== activeMotionType) return false
       return true
     })
-  }, [motions, search, activeTags, activeMotionType])
+
+    // Apply sorting
+    if (sortBy === 'newest') {
+      result.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0))
+    } else if (sortBy === 'oldest') {
+      result.sort((a, b) => (a.updatedAt?.seconds || 0) - (b.updatedAt?.seconds || 0))
+    } else if (sortBy === 'a-z') {
+      result.sort((a, b) => (a.text || '').localeCompare(b.text || ''))
+    }
+
+    return result
+  }, [motions, search, activeTags, activeMotionType, sortBy])
 
   const hasFilters = search.trim() || activeTags.length > 0 || activeMotionType
   const isEmpty = !loading && motions.length === 0
@@ -75,6 +87,7 @@ export default function MotionListPage() {
 
       {/* Filters */}
       <div className="space-y-3">
+        {/* Row 1: Search + Sort */}
         <div className="flex gap-3">
           <input
             type="search"
@@ -84,38 +97,68 @@ export default function MotionListPage() {
             className="flex-1 px-4 py-2 border border-stone-300 rounded-lg text-sm"
           />
           <select
-            value={activeMotionType}
-            onChange={(e) => setActiveMotionType(e.target.value)}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
             className="px-3 py-2 border border-stone-300 rounded-lg text-sm"
           >
-            <option value="">All Types</option>
-            {MOTION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="a-z">A-Z</option>
           </select>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {allTags.slice(0, 15).map((t) => (
+
+        {/* Row 2: Motion Type Filter */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveMotionType('')}
+            className={
+              'px-3 py-1.5 rounded-lg text-sm transition ' +
+              (activeMotionType === ''
+                ? 'bg-stone-900 text-white'
+                : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+            }
+          >
+            All
+          </button>
+          {MOTION_TYPES.map((t) => (
             <button
-              key={t}
-              onClick={() =>
-                setActiveTags((prev) =>
-                  prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-                )
-              }
+              key={t.value}
+              onClick={() => setActiveMotionType(t.value)}
               className={
-                'px-3 py-1 rounded-lg text-xs transition ' +
-                (activeTags.includes(t)
+                'px-3 py-1.5 rounded-lg text-sm transition ' +
+                (activeMotionType === t.value
                   ? 'bg-stone-900 text-white'
                   : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
               }
             >
-              #{t}
+              {t.value}
             </button>
           ))}
         </div>
+
+        {/* Row 3: Tags Filter */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {allTags.slice(0, 20).map((t) => (
+              <button
+                key={t}
+                onClick={() =>
+                  setActiveTags((prev) =>
+                    prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+                  )
+                }
+                className={
+                  'px-3 py-1 rounded-lg text-xs transition ' +
+                  (activeTags.includes(t)
+                    ? 'bg-stone-900 text-white'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700')
+                }
+              >
+                #{t}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {isEmpty && (
