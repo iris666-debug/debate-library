@@ -3,6 +3,10 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase/config'
+import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
+import { useUserCollection } from '../hooks/useCollection'
+import TagInput from '../components/TagInput'
+import SpeakButton from '../components/SpeakButton'
 
 export default function MotionEditPage() {
   const { user } = useAuth()
@@ -10,8 +14,14 @@ export default function MotionEditPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
 
+  const { items: motions } = useUserCollection('motions', {
+    orderBy: 'createdAt',
+    orderDir: 'desc',
+  })
+
   const [loading, setLoading] = useState(isEdit)
   const [error, setError] = useState('')
+  const [basicInfoOpen, setBasicInfoOpen] = useState(false)
   const [motion, setMotion] = useState({
     text: '',
     source: '',
@@ -159,14 +169,17 @@ export default function MotionEditPage() {
           <label className="block text-sm font-medium text-stone-700 mb-2">
             Motion Text
           </label>
-          <textarea
-            value={motion.text}
-            onChange={(e) => setMotion({ ...motion, text: e.target.value })}
-            rows={3}
-            required
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
-            placeholder="This House would..."
-          />
+          <div className="flex gap-2">
+            <textarea
+              value={motion.text}
+              onChange={(e) => setMotion({ ...motion, text: e.target.value })}
+              rows={3}
+              required
+              className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none resize-y"
+              placeholder="This House would..."
+            />
+            <SpeakButton text={motion.text} label="🔊" />
+          </div>
         </div>
 
         <div>
@@ -179,6 +192,60 @@ export default function MotionEditPage() {
             className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none"
             placeholder="WUDC 2024 R3"
           />
+        </div>
+
+        {/* Basic Info - Collapsible */}
+        <details open={basicInfoOpen} onToggle={(e) => setBasicInfoOpen(e.target.open)}>
+          <summary className="cursor-pointer font-semibold text-sm py-2 list-none flex items-center justify-between border-t border-stone-200 pt-4">
+            <span>Basic Info</span>
+            <span className="text-stone-400">{basicInfoOpen ? '▲' : '▼'}</span>
+          </summary>
+          <div className="mt-4 space-y-4 pl-4">
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">
+                Motion Type
+              </label>
+              <select
+                value={motion.motionType}
+                onChange={(e) => setMotion({ ...motion, motionType: e.target.value })}
+                className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:border-stone-900 focus:outline-none"
+              >
+                <option value="">-- None --</option>
+                {MOTION_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-2">
+                Tags
+              </label>
+              <TagInput
+                value={motion.tags}
+                onChange={(tags) => setMotion({ ...motion, tags })}
+                suggestions={SUGGESTED_TAGS}
+              />
+            </div>
+          </div>
+        </details>
+
+        {/* Core Clash - Always Expanded */}
+        <div className="border-t border-stone-200 pt-4">
+          <h3 className="font-semibold text-sm mb-3">Core Clash</h3>
+          <div className="pl-4">
+            <TagInput
+              value={motion.coreClashes}
+              onChange={(coreClashes) => setMotion({ ...motion, coreClashes })}
+              suggestions={[...new Set(motions.flatMap(m => m.coreClashes || []))].sort()}
+              placeholder="e.g. Innovation vs Safety"
+            />
+            <p className="text-xs text-stone-500 mt-2">
+              The central tension both sides are fighting over
+            </p>
+          </div>
         </div>
 
         <div>
