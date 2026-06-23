@@ -1,19 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import BilingualField from './BilingualField'
 
 export default function MechanismEditor({ value, onChange }) {
   // value 格式: { mechanism_en: '', mechanism_zh: '', mechanism_points: [] }
-  // 向后兼容：如果 mechanism_points 为空但有旧字段，显示为第1步
-  const [points, setPoints] = useState(() => {
+  const [points, setPoints] = useState([])
+
+  // 监听 value.mechanism_points 变化
+  useEffect(() => {
     if (value.mechanism_points && value.mechanism_points.length > 0) {
-      return value.mechanism_points
+      setPoints(value.mechanism_points)
+    } else if (value.mechanism_en || value.mechanism_zh) {
+      // 兼容旧数据
+      setPoints([{ text_en: value.mechanism_en || '', text_zh: value.mechanism_zh || '' }])
+    } else {
+      setPoints([])
     }
-    // 兼容旧数据
-    if (value.mechanism_en || value.mechanism_zh) {
-      return [{ text_en: value.mechanism_en || '', text_zh: value.mechanism_zh || '' }]
-    }
-    return []
-  })
+  }, [value.mechanism_points, value.mechanism_en, value.mechanism_zh])
 
   const updatePoints = (newPoints) => {
     setPoints(newPoints)
