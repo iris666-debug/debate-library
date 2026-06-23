@@ -421,6 +421,12 @@ export default function MotionEditPage() {
                 </div>
                 {expandedArgs.prop[i] && (
                   <div className="p-3 border-t border-stone-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <SpeakButton
+                        text={`${arg.claim_en || arg.claim_zh || ''}. ${(arg.mechanism_points || []).map(p => p.text_en || p.text_zh).join('. ')}. ${arg.impact_en || arg.impact_zh || ''}`}
+                        label="🔊 Read Argument"
+                      />
+                    </div>
                     <ArgumentEditor
                       index={i}
                       side="prop"
@@ -468,6 +474,12 @@ export default function MotionEditPage() {
                 </div>
                 {expandedArgs.opp[i] && (
                   <div className="p-3 border-t border-stone-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <SpeakButton
+                        text={`${arg.claim_en || arg.claim_zh || ''}. ${(arg.mechanism_points || []).map(p => p.text_en || p.text_zh).join('. ')}. ${arg.impact_en || arg.impact_zh || ''}`}
+                        label="🔊 Read Argument"
+                      />
+                    </div>
                     <ArgumentEditor
                       index={i}
                       side="opp"
