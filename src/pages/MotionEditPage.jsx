@@ -7,6 +7,7 @@ import { MOTION_TYPES, SUGGESTED_TAGS } from '../data/debateTaxonomy'
 import { useUserCollection } from '../hooks/useCollection'
 import TagInput from '../components/TagInput'
 import SpeakButton from '../components/SpeakButton'
+import ArgumentEditor from '../components/ArgumentEditor'
 
 export default function MotionEditPage() {
   const { user } = useAuth()
