@@ -350,13 +350,13 @@ export default function CoachPage() {
         ) : (
           <>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium">关联辩题（可选）</span>
+              <span className="text-sm font-medium">Link to Motion (Optional)</span>
               <select
                 value={selectedMotionId}
                 onChange={(e) => setSelectedMotionId(e.target.value)}
                 className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
               >
-                <option value="">-- 不关联 --</option>
+                <option value="">-- None --</option>
                 {motions.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.text}
@@ -365,11 +365,12 @@ export default function CoachPage() {
               </select>
             </label>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium">上传 PDF 文件</span>
+              <span className="text-sm font-medium">Upload PDF</span>
               <input
                 type="file"
                 accept="application/pdf"
                 onChange={handlePdfSelect}
+                lang="en"
                 className="w-full text-sm"
               />
             </label>

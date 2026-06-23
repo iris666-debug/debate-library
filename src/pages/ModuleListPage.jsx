@@ -34,16 +34,16 @@ export default function ModuleListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">万能模块库</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Frameworks</h1>
           <p className="text-sm text-stone-500 mt-1">
-            {loading ? '加载中…' : `共 ${modules.length} 个模块`}
+            {loading ? 'Loading...' : `${modules.length} frameworks`}
           </p>
         </div>
         <button
           onClick={() => setEditing({})}
           className="px-4 py-2 rounded-lg bg-stone-900 text-white text-sm hover:bg-stone-800"
         >
-          + 新增模块
+          + New Framework
         </button>
       </div>
 
@@ -55,7 +55,7 @@ export default function ModuleListPage() {
 
       {!loading && modules.length === 0 && (
         <div className="bg-white border border-dashed border-stone-300 rounded-2xl p-12 text-center">
-          <p className="text-stone-500 text-sm">还没有模块。点上方"新增模块"开始添加。</p>
+          <p className="text-stone-500 text-sm">No frameworks yet. Click "+ New Framework" to add one.</p>
         </div>
       )}
 
